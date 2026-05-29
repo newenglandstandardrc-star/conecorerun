@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ConeCoreRun — Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+/* ── RESET + TOKENS ─────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --red:        #CE2229;
+  --red-dark:   #791F1F;
+  --red-mid:    #F09595;
+  --red-light:  #FCEBEB;
+  --amber:      #BA7517;
+  --amber-light:#FAEEDA;
+  --green:      #3B6D11;
+  --green-light:#EAF3DE;
+  --blue:       #185FA5;
+  --blue-light: #E6F1FB;
+  --dark:       #0F0D0B;
+  --mid:        #2C2A27;
+  --muted:      #7a736a;
+  --border:     rgba(0,0,0,0.08);
+  --surface:    #F5F1EA;
+  --card:       #FFFFFF;
+  --cream:      #FBF8F2;
+  --text:       #1a1814;
+  --r:          14px;
+  --r-sm:       8px;
+  --r-full:     100px;
+}
+
+html, body {
+  height: 100%;
+  background: var(--cream);
+  color: var(--text);
+  font-family: "DM Sans", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── PHONE SHELL ────────────────────────────────── */
+.shell {
+  width: 390px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: var(--cream);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── STATUS BAR ─────────────────────────────────── */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px 6px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--cream);
+}
+
+.status-time {
+  font-family: "DM Mono", monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.status-icons {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── HEADER ─────────────────────────────────────── */
+.header {
+  padding: 10px 20px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left { display: flex; flex-direction: column; gap: 1px; }
+
+.greeting {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.name {
+  font-family: "Syne", sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+.header-right { display: flex; align-items: center; gap: 8px; }
+
+.streak-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--red-light);
+  border: 0.5px solid var(--red-mid);
+  border-radius: var(--r-full);
+  padding: 4px 10px 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--red-dark);
+}
+
+.streak-flame { font-size: 13px; }
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--red-light);
+  border: 1.5px solid var(--red-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Syne", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--red-dark);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.avatar:active { transform: scale(0.94); }
+
+/* ── SCROLL BODY ────────────────────────────────── */
+.scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 100px;
+  scrollbar-width: none;
+}
+.scroll-body::-webkit-scrollbar { display: none; }
+
+/* ── GPS ALERT ──────────────────────────────────── */
+.gps-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--red-light);
+  border: 0.5px solid var(--red-mid);
+  border-radius: var(--r);
+  padding: 11px 14px;
+  margin-bottom: 12px;
+  animation: slideDown 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.gps-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.gps-text { flex: 1; min-width: 0; }
+.gps-title { font-size: 12px; font-weight: 500; color: var(--red-dark); }
+.gps-sub { font-size: 11px; color: var(--red); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.gps-go {
+  background: var(--red);
+  color: white;
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 6px 14px;
+  font-family: "Syne", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.1s;
+  letter-spacing: 0.2px;
+}
+.gps-go:hover { background: #b01e24; }
+.gps-go:active { transform: scale(0.95); }
+
+/* ── SCAN BUTTON ────────────────────────────────── */
+.scan-btn {
+  width: 100%;
+  background: var(--red);
+  border: none;
+  border-radius: var(--r);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.scan-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 8px,
+    rgba(255,255,255,0.03) 8px,
+    rgba(255,255,255,0.03) 16px
+  );
+  pointer-events: none;
+}
+
+.scan-btn:hover { background: #b61f25; }
+.scan-btn:active { transform: scale(0.99); }
+
+.scan-icon {
+  width: 26px;
+  height: 26px;
+  border: 2px solid rgba(255,255,255,0.9);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.scan-icon::before, .scan-icon::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-color: white;
+  border-style: solid;
+}
+.scan-icon::before { top: 2px; left: 2px; border-width: 2px 0 0 2px; }
+.scan-icon::after  { bottom: 2px; right: 2px; border-width: 0 2px 2px 0; }
+
+.scan-line {
+  position: absolute;
+  width: 14px;
+  height: 1.5px;
+  background: white;
+  animation: scanPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes scanPulse {
+  0%, 100% { transform: translateY(-5px); opacity: 0.4; }
+  50%       { transform: translateY(5px);  opacity: 1; }
+}
+
+.scan-label {
+  font-family: "Syne", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.2px;
+}
+
+/* ── SECTION LABEL ──────────────────────────────── */
+.section-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+/* ── PROGRESS GRID ──────────────────────────────── */
+.progress-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.progress-card {
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-card:hover { border-color: rgba(206,34,41,0.3); transform: translateY(-1px); }
+.progress-card:active { transform: scale(0.98); }
+
+.progress-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--red);
+  border-radius: 0 0 var(--r) var(--r);
+  transform: scaleX(var(--pct, 0));
+  transform-origin: left;
+  transition: transform 0.6s cubic-bezier(0.34,1.2,0.64,1);
+}
+
+.progress-card.pct-78::after  { --pct: 0.78; }
+.progress-card.pct-19::after  { --pct: 0.19; }
+.progress-card.pct-16::after  { --pct: 0.16; }
+
+.prog-label { font-size: 10px; color: var(--muted); margin-bottom: 5px; }
+.prog-value {
+  font-family: "Syne", sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  line-height: 1;
+  margin-bottom: 7px;
+}
+
+.prog-bar-track {
+  height: 3px;
+  background: var(--surface);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.prog-bar-fill {
+  height: 100%;
+  background: var(--red);
+  border-radius: 2px;
+  transition: width 0.8s cubic-bezier(0.34,1.2,0.64,1);
+}
+
+.badges-card {
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px 13px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.badges-card:hover { border-color: rgba(206,34,41,0.3); }
+
+.badge-dots { display: flex; gap: 5px; margin-top: 6px; align-items: center; }
+
+.badge-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 0.5px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+}
+
+/* ── ACTIVE RACE ────────────────────────────────── */
+.race-card {
+  background: var(--dark);
+  border-radius: var(--r);
+  padding: 14px 15px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.race-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 20px,
+    rgba(255,255,255,0.012) 20px,
+    rgba(255,255,255,0.012) 40px
+  );
+  pointer-events: none;
+}
+
+.race-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.race-title-group { display: flex; flex-direction: column; gap: 2px; }
+.race-title { font-family: "Syne", sans-serif; font-size: 14px; font-weight: 700; color: white; }
+.race-sub { font-size: 11px; color: rgba(255,255,255,0.45); }
+
+.race-place {
+  background: rgba(59,109,17,0.25);
+  border: 0.5px solid rgba(97,196,37,0.35);
+  border-radius: var(--r-sm);
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #7fd44a;
+  flex-shrink: 0;
+}
+
+.race-rows { display: flex; flex-direction: column; gap: 7px; }
+
+.race-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.racer-name {
+  font-size: 11px;
+  font-weight: 500;
+  min-width: 36px;
+  color: rgba(255,255,255,0.5);
+}
+.racer-name.you { color: var(--red); }
+
+.race-bar-track {
+  flex: 1;
+  height: 5px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.race-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.9s cubic-bezier(0.34,1.2,0.64,1);
+}
+
+.race-count {
+  font-family: "DM Mono", monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  min-width: 24px;
+  text-align: right;
+}
+.race-count.you { color: white; }
+
+/* ── NEARBY LOCATIONS ───────────────────────────── */
+.nearby-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.see-map {
+  font-size: 12px;
+  color: var(--red);
+  font-weight: 500;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: "DM Sans", sans-serif;
+}
+
+.nearby-list {
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.nearby-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-bottom: 0.5px solid var(--border);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.nearby-row:last-child { border-bottom: none; }
+.nearby-row:hover { background: var(--surface); }
+.nearby-row:active { background: var(--red-light); }
+
+.nearby-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.nearby-text { flex: 1; min-width: 0; }
+.nearby-name { font-size: 12px; font-weight: 500; color: var(--text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.nearby-sub  { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+/* ── BONUS PILL ─────────────────────────────────── */
+.bonus-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.bp-amber { background: var(--amber-light); color: #633806; border: 0.5px solid #EF9F27; }
+.bp-red   { background: var(--red-light);   color: var(--red-dark); border: 0.5px solid var(--red-mid); }
+
+/* ── BONUSES SECTION ────────────────────────────── */
+.bonuses-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
+
+.bonus-row-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r);
+  padding: 10px 13px;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.bonus-row-item:hover { border-color: rgba(206,34,41,0.2); background: var(--surface); }
+
+.bonus-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.bonus-info { flex: 1; }
+.bonus-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.bonus-desc { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+.bonus-pts {
+  font-family: "DM Mono", monospace;
+  font-size: 12px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* ── COMMUNITY CARD ─────────────────────────────── */
+.community-card {
+  background: var(--red-light);
+  border: 0.5px solid var(--red-mid);
+  border-radius: var(--r);
+  padding: 13px 15px;
+  margin-bottom: 14px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.community-card:hover { background: #fce0e0; }
+
+.community-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.community-title { font-size: 12px; font-weight: 600; color: var(--red-dark); }
+.community-tag {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--red);
+  background: rgba(206,34,41,0.1);
+  padding: 2px 7px;
+  border-radius: var(--r-full);
+}
+
+.community-body { font-size: 11px; color: var(--red); line-height: 1.5; }
+.community-hotline { font-size: 11px; font-weight: 600; color: var(--red-dark); margin-top: 5px; }
+
+/* ── BOTTOM NAV ─────────────────────────────────── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 390px;
+  background: rgba(251,248,242,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 0.5px solid var(--border);
+  padding: 10px 0 22px;
+  display: flex;
+  justify-content: space-around;
+  z-index: 200;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 4px 12px;
+  border-radius: var(--r-sm);
+  transition: background 0.12s;
+}
+
+.nav-item:hover { background: var(--surface); }
+
+.nav-icon { font-size: 20px; color: var(--muted); transition: color 0.15s; }
+.nav-label { font-size: 9px; color: var(--muted); font-weight: 500; transition: color 0.15s; }
+
+.nav-item.active .nav-icon { color: var(--red); }
+.nav-item.active .nav-label { color: var(--red); }
+
+.nav-scan .nav-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--red);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  margin-top: -14px;
+  box-shadow: 0 4px 16px rgba(206,34,41,0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.nav-scan:hover .nav-icon { transform: scale(1.06); box-shadow: 0 6px 20px rgba(206,34,41,0.45); }
+
+/* ── STAGGER ANIMATIONS ─────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up { opacity: 0; animation: fadeUp 0.45s ease forwards; }
+.d1 { animation-delay: 0.05s; }
+.d2 { animation-delay: 0.12s; }
+.d3 { animation-delay: 0.19s; }
+.d4 { animation-delay: 0.26s; }
+.d5 { animation-delay: 0.33s; }
+.d6 { animation-delay: 0.40s; }
+.d7 { animation-delay: 0.47s; }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 420px) {
+  .shell { width: 100%; }
+  .bottom-nav { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+      <span>●●●</span>
+      <span>WiFi</span>
+      <span>█▉</span>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="header fade-up d1">
+    <div class="header-left">
+      <span class="greeting">Welcome back,</span>
+      <span class="name">Mike T.</span>
+    </div>
+    <div class="header-right">
+      <div class="streak-badge">
+        <span class="streak-flame">🔥</span>
+        12 day streak
+      </div>
+      <div class="avatar" onclick="navTo('profile')">MT</div>
+    </div>
+  </div>
+
+  <!-- SCROLL BODY -->
+  <div class="scroll-body">
+
+    <!-- GPS ALERT -->
+    <div class="gps-alert fade-up d2">
+      <div class="gps-icon">📍</div>
+      <div class="gps-text">
+        <div class="gps-title">You're near a Stewart's!</div>
+        <div class="gps-sub">110 Hoosick St, Troy · 0.2 mi away</div>
+      </div>
+      <button class="gps-go" onclick="navTo('scan')">Go →</button>
+    </div>
+
+    <!-- SCAN BUTTON -->
+    <button class="scan-btn fade-up d2" onclick="navTo('scan')">
+      <div class="scan-icon">
+        <div class="scan-line"></div>
+      </div>
+      <span class="scan-label">Scan check-in code</span>
+    </button>
+
+    <!-- PROGRESS -->
+    <div class="section-label fade-up d3">Your progress</div>
+    <div class="progress-grid fade-up d3">
+
+      <div class="progress-card pct-78" onclick="navTo('map')">
+        <div class="prog-label">Warren Co.</div>
+        <div class="prog-value">11<span style="font-size:13px;color:var(--muted);font-weight:400"> / 14</span></div>
+        <div class="prog-bar-track">
+          <div class="prog-bar-fill" style="width:78%"></div>
+        </div>
+      </div>
+
+      <div class="progress-card pct-19" onclick="navTo('map')">
+        <div class="prog-label">New York</div>
+        <div class="prog-value">67<span style="font-size:13px;color:var(--muted);font-weight:400"> / 354</span></div>
+        <div class="prog-bar-track">
+          <div class="prog-bar-fill" style="width:19%"></div>
+        </div>
+      </div>
+
+      <div class="progress-card pct-16" onclick="navTo('map')">
+        <div class="prog-label">Full network</div>
+        <div class="prog-value">67<span style="font-size:13px;color:var(--muted);font-weight:400"> / 407</span></div>
+        <div class="prog-bar-track">
+          <div class="prog-bar-fill" style="width:16%"></div>
+        </div>
+      </div>
+
+      <div class="badges-card" onclick="navTo('badges')">
+        <div class="prog-label">Badges + Scoops</div>
+        <div class="prog-value">1,240<span style="font-size:11px;color:var(--muted);font-weight:400"> scoops</span></div>
+        <div class="badge-dots">
+          <div class="badge-dot" style="background:var(--red-light);border-color:var(--red-mid);">🍦</div>
+          <div class="badge-dot" style="background:var(--amber-light);border-color:#EF9F27;">🌲</div>
+          <div class="badge-dot" style="background:var(--blue-light);border-color:#85B7EB;">🥛</div>
+          <span style="font-size:10px;color:var(--muted);margin-left:2px;">+5 more</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ACTIVE RACE -->
+    <div class="section-label fade-up d4">Active race</div>
+    <div class="race-card fade-up d4" onclick="navTo('races')">
+      <div class="race-header">
+        <div class="race-title-group">
+          <span class="race-title">Capital Region sprint</span>
+          <span class="race-sub">vs. 3 others · ends in 4 days</span>
+        </div>
+        <span class="race-place">2nd place</span>
+      </div>
+      <div class="race-rows">
+        <div class="race-row">
+          <span class="racer-name">Dave</span>
+          <div class="race-bar-track">
+            <div class="race-bar-fill" style="width:79%;background:rgba(255,255,255,0.18)"></div>
+          </div>
+          <span class="race-count">81</span>
+        </div>
+        <div class="race-row">
+          <span class="racer-name you">You</span>
+          <div class="race-bar-track">
+            <div class="race-bar-fill" style="width:65%;background:var(--red)"></div>
+          </div>
+          <span class="race-count you">67</span>
+        </div>
+        <div class="race-row">
+          <span class="racer-name">Sara</span>
+          <div class="race-bar-track">
+            <div class="race-bar-fill" style="width:49%;background:rgba(255,255,255,0.12)"></div>
+          </div>
+          <span class="race-count">50</span>
+        </div>
+        <div class="race-row">
+          <span class="racer-name">Chris</span>
+          <div class="race-bar-track">
+            <div class="race-bar-fill" style="width:23%;background:rgba(255,255,255,0.08)"></div>
+          </div>
+          <span class="race-count">23</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEARBY LOCATIONS -->
+    <div class="nearby-header fade-up d5">
+      <span class="section-label" style="margin:0">Nearby locations</span>
+      <button class="see-map" onclick="navTo('map')">See map →</button>
+    </div>
+    <div class="nearby-list fade-up d5">
+
+      <div class="nearby-row" onclick="navTo('scan')">
+        <div class="nearby-dot" style="background:var(--green-light);border:0.5px solid #97C459;">✓</div>
+        <div class="nearby-text">
+          <div class="nearby-name">110 Hoosick St, Troy</div>
+          <div class="nearby-sub">0.2 mi · Checked in</div>
+        </div>
+      </div>
+
+      <div class="nearby-row" onclick="navTo('scan')">
+        <div class="nearby-dot" style="background:var(--amber-light);border:0.5px solid #EF9F27;">📍</div>
+        <div class="nearby-text">
+          <div class="nearby-name">
+            9 112th St, Troy
+            <span class="bonus-pill bp-amber">Pioneer +50</span>
+          </div>
+          <div class="nearby-sub">1.1 mi · Low check-ins</div>
+        </div>
+      </div>
+
+      <div class="nearby-row" onclick="navTo('scan')">
+        <div class="nearby-dot" style="background:var(--red-light);border:0.5px solid var(--red-mid);">📍</div>
+        <div class="nearby-text">
+          <div class="nearby-name">
+            127 Congress St, Troy
+            <span class="bonus-pill bp-red">Loyal +25</span>
+          </div>
+          <div class="nearby-sub">1.4 mi · Near competitor</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BONUSES -->
+    <div class="section-label fade-up d6">Bonuses available today</div>
+    <div class="bonuses-list fade-up d6">
+
+      <div class="bonus-row-item" onclick="navTo('scan')">
+        <div class="bonus-icon-wrap" style="background:var(--red-light);">🏆</div>
+        <div class="bonus-info">
+          <div class="bonus-name">Loyal bonus</div>
+          <div class="bonus-desc">Drive past a competitor · check in at Stewart's</div>
+        </div>
+        <span class="bonus-pts" style="color:var(--red);">+25</span>
+      </div>
+
+      <div class="bonus-row-item" onclick="navTo('map')">
+        <div class="bonus-icon-wrap" style="background:var(--amber-light);">🌲</div>
+        <div class="bonus-info">
+          <div class="bonus-name">Pioneer bonus</div>
+          <div class="bonus-desc">9 112th St, Troy · low check-in location</div>
+        </div>
+        <span class="bonus-pts" style="color:var(--amber);">+50</span>
+      </div>
+
+      <div class="bonus-row-item" onclick="navTo('scan')">
+        <div class="bonus-icon-wrap" style="background:var(--blue-light);">🥛</div>
+        <div class="bonus-info">
+          <div class="bonus-name">Dairy bonus</div>
+          <div class="bonus-desc">Buy milk, eggs or ice cream · confirm at scan</div>
+        </div>
+        <span class="bonus-pts" style="color:var(--blue);">+15</span>
+      </div>
+
+    </div>
+
+    <!-- COMMUNITY CARD -->
+    <div class="community-card fade-up d7">
+      <div class="community-header">
+        <span class="community-title">Wellspring</span>
+        <span class="community-tag">Community partner</span>
+      </div>
+      <div class="community-body">
+        Saratoga County domestic violence &amp; sexual assault services.
+        A long-time Stewart's Shops charitable partner.
+      </div>
+      <div class="community-hotline">24-hour hotline: 518-584-8188</div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="navTo('map')">
+      <span class="nav-icon">🗺</span>
+      <span class="nav-label">Map</span>
+    </button>
+    <button class="nav-item active" onclick="navTo('home')">
+      <span class="nav-icon">⌂</span>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-item nav-scan" onclick="navTo('scan')">
+      <span class="nav-icon">⊞</span>
+      <span class="nav-label">Scan</span>
+    </button>
+    <button class="nav-item" onclick="navTo('races')">
+      <span class="nav-icon">⚑</span>
+      <span class="nav-label">Races</span>
+    </button>
+    <button class="nav-item" onclick="navTo('badges')">
+      <span class="nav-icon">◈</span>
+      <span class="nav-label">Badges</span>
+    </button>
+  </nav>
+
+</div>
+
+<script>
+  // Animate progress bars on load
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      document.querySelectorAll('.prog-bar-fill').forEach(bar => {
+        const w = bar.style.width;
+        bar.style.width = '0';
+        setTimeout(() => bar.style.width = w, 50);
+      });
+      document.querySelectorAll('.race-bar-fill').forEach(bar => {
+        const w = bar.style.width;
+        bar.style.width = '0';
+        setTimeout(() => bar.style.width = w, 80);
+      });
+    }, 300);
+
+    // Clock
+    function tick() {
+      const now = new Date();
+      const h = now.getHours();
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const el = document.querySelector('.status-time');
+      if (el) el.textContent = `${h}:${m}`;
+    }
+    tick();
+    setInterval(tick, 30000);
+  });
+
+  // Navigation placeholder — wires to other screens
+  function navTo(screen) {
+    const labels = {
+      home:    'Home',
+      map:     'Map',
+      scan:    'Scan / Check-in',
+      races:   'Races',
+      badges:  'Badges & Scoops',
+      profile: 'Profile'
+    };
+    // In the full prototype this routes between screens
+    // For now highlight the nav item
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const match = [...document.querySelectorAll('.nav-item')]
+      .find(n => n.querySelector('.nav-label')?.textContent.toLowerCase().includes(screen.substring(0,4)));
+    if (match) match.classList.add('active');
+
+    if (screen !== 'home') {
+      console.log(`→ Navigate to: ${labels[screen] || screen}`);
+      // TODO: route to app/screens/${screen}.html
+    }
+  }
+</script>
+
+</body>
+</html>
