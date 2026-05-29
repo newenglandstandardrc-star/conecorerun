@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ConeCoreRun — Define Your Run</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --red: #CE2229; --red-dark: #791F1F; --red-mid: #F09595; --red-light: #FCEBEB;
+  --amber: #BA7517; --amber-light: #FAEEDA;
+  --green: #3B6D11; --green-light: #EAF3DE;
+  --dark: #0F0D0B; --muted: #7a736a; --border: rgba(0,0,0,0.08);
+  --surface: #F5F1EA; --card: #FFFFFF; --cream: #FBF8F2; --text: #1a1814;
+  --r: 14px; --r-sm: 8px; --r-full: 100px;
+}
+html, body { height: 100%; background: #1a1814; font-family: "DM Sans", sans-serif; -webkit-font-smoothing: antialiased; }
+
+.shell {
+  width: 390px; min-height: 100vh; margin: 0 auto;
+  background: var(--cream); position: relative;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+
+/* ── DEV NAV ── */
+#dev-nav { position:fixed;top:0;left:50%;transform:translateX(-50%);width:390px;z-index:9999;font-family:'DM Mono',monospace; }
+#dev-pill { position:absolute;top:6px;right:10px;background:rgba(15,13,11,0.75);color:rgba(255,255,255,0.6);font-size:9px;letter-spacing:0.5px;padding:3px 8px;border-radius:100px;cursor:pointer;z-index:10000;backdrop-filter:blur(8px);user-select:none; }
+#dev-panel { background:rgba(15,13,11,0.88);backdrop-filter:blur(12px);padding:8px 12px 7px;border-bottom:0.5px solid rgba(255,255,255,0.08); }
+.dev-label { font-size:8px;color:rgba(255,255,255,0.35);letter-spacing:1.5px;margin-bottom:6px; }
+.dev-btns { display:flex;gap:5px;flex-wrap:wrap; }
+.dnb { background:rgba(255,255,255,0.08);border:0.5px solid rgba(255,255,255,0.15);border-radius:6px;padding:4px 10px;font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,0.65);cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center; }
+.dnb:hover { background:rgba(255,255,255,0.16);color:white; }
+.dnb.active { background:rgba(206,34,41,0.5);border-color:rgba(206,34,41,0.7);color:white; }
+#dev-nav.nav-hidden #dev-panel { display:none; }
+
+/* ── STATUS BAR ── */
+.status-bar { display:flex;justify-content:space-between;align-items:center;padding:14px 20px 4px;flex-shrink:0; }
+.status-time { font-family:"DM Mono",monospace;font-size:12px;font-weight:500;color:var(--text); }
+.status-icons { font-size:11px;color:var(--muted); }
+
+/* ── HEADER ── */
+.screen-header { padding:6px 20px 0;flex-shrink:0; }
+.back-btn { background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer;padding:0;line-height:1;margin-bottom:6px;display:block; }
+.screen-eyebrow { font-size:10px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px; }
+.screen-title { font-family:"Syne",sans-serif;font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.4px;line-height:1.1;margin-bottom:4px; }
+.screen-sub { font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:10px; }
+
+/* ── MAP CONTAINER ── */
+.map-wrap {
+  flex: 1;
+  position: relative;
+  background: #dce8f0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+}
+.map-wrap:active { cursor: grabbing; }
+
+#map-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── DRAG HANDLE ── */
+.drag-handle {
+  position: absolute;
+  width: 28px; height: 28px;
+  background: white;
+  border: 2.5px solid var(--red);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: grab;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  touch-action: none;
+  z-index: 10;
+  transform: translate(-50%, -50%);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.drag-handle:active { transform: translate(-50%,-50%) scale(1.15); box-shadow: 0 4px 16px rgba(206,34,41,0.3); cursor: grabbing; }
+.drag-handle::after { content:'↔'; font-size:11px; color:var(--red); font-weight:600; }
+
+/* ── STORE COUNT BADGE ── */
+.count-badge {
+  position: absolute;
+  top: 12px; left: 50%; transform: translateX(-50%);
+  background: var(--dark);
+  color: white;
+  font-family: "Syne", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: var(--r-full);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 20;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  transition: all 0.2s;
+}
+
+.count-badge .count-num {
+  color: var(--red);
+  font-size: 16px;
+}
+
+/* ── HOME BASE MARKER ── */
+.home-base-marker {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.home-base-marker.visible { opacity: 1; }
+
+.hb-pin {
+  background: var(--red);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: "Syne", sans-serif;
+  padding: 4px 9px;
+  border-radius: var(--r-sm);
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(206,34,41,0.4);
+  position: relative;
+  letter-spacing: 0.2px;
+}
+
+.hb-pin::after {
+  content: '';
+  position: absolute;
+  bottom: -5px; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--red);
+  border-bottom: none;
+}
+
+.hb-dot {
+  width: 10px; height: 10px;
+  background: var(--red);
+  border-radius: 50%;
+  border: 2px solid white;
+  margin-top: -1px;
+  box-shadow: 0 0 0 3px rgba(206,34,41,0.25);
+}
+
+/* ── BOTTOM PANEL ── */
+.bottom-panel {
+  background: var(--cream);
+  border-top: 0.5px solid var(--border);
+  padding: 14px 16px 20px;
+  flex-shrink: 0;
+  z-index: 30;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.stat-card {
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 9px 10px;
+  text-align: center;
+}
+
+.stat-label { font-size: 9px; color: var(--muted); font-weight: 500; letter-spacing: 0.3px; margin-bottom: 3px; }
+.stat-value { font-family: "Syne", sans-serif; font-size: 16px; font-weight: 800; color: var(--text); line-height: 1; }
+.stat-value.red { color: var(--red); }
+
+.difficulty-bar {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 8px 0 12px;
+}
+
+.difficulty-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.difficulty-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.home-base-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--red-light);
+  border: 0.5px solid var(--red-mid);
+  border-radius: var(--r-sm);
+  padding: 8px 11px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--red-dark);
+}
+
+.home-base-icon {
+  width: 24px; height: 24px;
+  background: var(--red);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  flex-shrink: 0;
+  color: white;
+}
+
+.cta-btn {
+  width: 100%;
+  background: var(--red);
+  border: none;
+  border-radius: var(--r);
+  padding: 14px;
+  font-family: "Syne", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.cta-btn:hover { background: #b01e24; }
+.cta-btn:active { transform: scale(0.99); }
+.cta-btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+
+.hint-text {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.fu { animation: fadeUp 0.35s ease both; }
+.fu1{animation-delay:.04s} .fu2{animation-delay:.10s} .fu3{animation-delay:.16s}
+
+@media (max-width: 420px) { .shell { width: 100%; } }
+</style>
+</head>
+<body>
+
+<!-- DEV NAV -->
+<div id="dev-nav">
+  <div id="dev-pill" onclick="toggleDevNav()">DEV ▾</div>
+  <div id="dev-panel">
+    <div class="dev-label">PROTOTYPE NAV — NOT IN PRODUCTION</div>
+    <div class="dev-btns">
+      <a href="onboarding.html" class="dnb">← Onboarding</a>
+      <span class="dnb active">Territory</span>
+      <a href="home.html" class="dnb">→ Home</a>
+    </div>
+  </div>
+</div>
+
+<div class="shell" id="shell">
+
+  <div class="status-bar">
+    <span class="status-time" id="clock">9:41</span>
+    <span class="status-icons">●●● WiFi █▉</span>
+  </div>
+
+  <div class="screen-header">
+    <button class="back-btn" onclick="history.back()">←</button>
+    <p class="screen-eyebrow fu fu1">Step 4 of 4</p>
+    <h1 class="screen-title fu fu1">Draw your run</h1>
+    <p class="screen-sub fu fu2">Drag the handle to set your starting territory. Every Stewart's inside your circle is your first heat.</p>
+  </div>
+
+  <!-- MAP -->
+  <div class="map-wrap" id="map-wrap">
+    <canvas id="map-canvas"></canvas>
+
+    <!-- Drag handle (positioned by JS) -->
+    <div class="drag-handle" id="drag-handle"></div>
+
+    <!-- Store count badge -->
+    <div class="count-badge" id="count-badge">
+      <span class="count-num" id="count-num">8</span> stores in your run
+    </div>
+
+    <!-- Home base marker (shown after first store tapped or auto-set) -->
+    <div class="home-base-marker" id="hb-marker">
+      <div class="hb-pin">🏠 Your home base</div>
+      <div class="hb-dot"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM PANEL -->
+  <div class="bottom-panel">
+
+    <div class="stats-row fu fu1">
+      <div class="stat-card">
+        <div class="stat-label">STORES</div>
+        <div class="stat-value red" id="stat-stores">8</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">RADIUS</div>
+        <div class="stat-value" id="stat-radius">12 mi</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">LEVEL</div>
+        <div class="stat-value" id="stat-level">Medium</div>
+      </div>
+    </div>
+
+    <div class="fu fu2">
+      <div class="difficulty-label">
+        <span>Easier</span>
+        <span id="diff-label">Medium challenge</span>
+        <span>Harder</span>
+      </div>
+      <div class="difficulty-bar">
+        <div class="difficulty-fill" id="diff-fill" style="width:45%;background:var(--amber)"></div>
+      </div>
+    </div>
+
+    <div class="home-base-row fu fu2" id="hb-row">
+      <div class="home-base-icon">🏠</div>
+      <div>
+        <strong>110 Hoosick St, Troy</strong> — your home base<br>
+        <span style="font-size:11px;font-weight:400;">First store visited · your flag on the map</span>
+      </div>
+    </div>
+
+    <button class="cta-btn fu fu3" id="confirm-btn" onclick="confirmRun()">
+      Confirm my run →
+    </button>
+    <p class="hint-text">You can expand your run any time. Your territory is yours.</p>
+
+  </div>
+
+</div>
+
+<script>
+// ── CLOCK ──────────────────────────────────────────
+function tick() {
+  var now = new Date();
+  document.getElementById('clock').textContent =
+    now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+}
+tick(); setInterval(tick, 30000);
+
+// ── DEV NAV ────────────────────────────────────────
+function toggleDevNav() {
+  var nav = document.getElementById('dev-nav');
+  nav.classList.toggle('nav-hidden');
+  document.getElementById('dev-pill').textContent =
+    nav.classList.contains('nav-hidden') ? 'DEV ▸' : 'DEV ▾';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var panel = document.getElementById('dev-panel');
+  var shell = document.getElementById('shell');
+  if (panel && shell) shell.style.paddingTop = (panel.offsetHeight + 2) + 'px';
+  initMap();
+});
+
+// ── MAP SETUP ──────────────────────────────────────
+var canvas, ctx, W, H;
+var cx, cy;          // circle center (canvas px)
+var radius = 120;    // circle radius (canvas px)
+var MIN_R = 40, MAX_R = 320;
+
+// Store locations (relative to center, in canvas-space px offset from cx,cy)
+// Based on real Troy/Saratoga/Capital region stores
+var stores = [
+  {label:'Troy', x:-8, y:0, visited:true},
+  {label:'Troy', x:18, y:-22, visited:false},
+  {label:'Troy', x:-30, y:20, visited:false},
+  {label:'Troy', x:40, y:10, visited:false},
+  {label:'Troy', x:-5, y:38, visited:false},
+  {label:'Troy', x:55, y:-30, visited:false},
+  {label:'Lansingburgh', x:15, y:-55, visited:false},
+  {label:'Watervliet', x:-55, y:-20, visited:false},
+  {label:'Cohoes', x:-60, y:-50, visited:false},
+  {label:'Rensselaer', x:68, y:22, visited:false},
+  {label:'Green Island', x:-40, y:-65, visited:false},
+  {label:'Albany', x:-95, y:-30, visited:false},
+  {label:'Albany', x:-110, y:10, visited:false},
+  {label:'Albany', x:-85, y:45, visited:false},
+  {label:'Colonie', x:-130, y:-60, visited:false},
+  {label:'Loudonville', x:-100, y:-80, visited:false},
+  {label:'Saratoga', x:-80, y:-155, visited:false},
+  {label:'Saratoga', x:-50, y:-170, visited:false},
+  {label:'Clifton Park', x:-60, y:-120, visited:false},
+  {label:'Schenectady', x:-180, y:-20, visited:false},
+  {label:'Schenectady', x:-195, y:15, visited:false},
+  {label:'Glens Falls', x:40, y:-220, visited:false},
+  {label:'Glens Falls', x:70, y:-235, visited:false},
+  {label:'Queensbury', x:90, y:-205, visited:false},
+];
+
+var isDragging = false;
+var dragStartX, dragStartY, dragStartR;
+
+function initMap() {
+  canvas = document.getElementById('map-canvas');
+  var wrap = document.getElementById('map-wrap');
+
+  function resize() {
+    W = wrap.clientWidth;
+    H = wrap.clientHeight;
+    canvas.width = W;
+    canvas.height = H;
+    cx = W / 2;
+    cy = H * 0.48;
+    positionHandle();
+    draw();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Initial home base marker
+  setTimeout(() => {
+    positionHomeBase();
+    document.getElementById('hb-marker').classList.add('visible');
+  }, 600);
+
+  // Drag handle events
+  var handle = document.getElementById('drag-handle');
+
+  // Mouse
+  handle.addEventListener('mousedown', startDrag);
+  document.addEventListener('mousemove', onDrag);
+  document.addEventListener('mouseup', endDrag);
+
+  // Touch
+  handle.addEventListener('touchstart', startDrag, {passive: false});
+  document.addEventListener('touchmove', onDrag, {passive: false});
+  document.addEventListener('touchend', endDrag);
+}
+
+function getEventXY(e) {
+  if (e.touches) return {x: e.touches[0].clientX, y: e.touches[0].clientY};
+  return {x: e.clientX, y: e.clientY};
+}
+
+function startDrag(e) {
+  e.preventDefault();
+  isDragging = true;
+  var pt = getEventXY(e);
+  var rect = canvas.getBoundingClientRect();
+  dragStartX = pt.x - rect.left;
+  dragStartY = pt.y - rect.top;
+  dragStartR = radius;
+}
+
+function onDrag(e) {
+  if (!isDragging) return;
+  e.preventDefault();
+  var pt = getEventXY(e);
+  var rect = canvas.getBoundingClientRect();
+  var mx = pt.x - rect.left;
+  var my = pt.y - rect.top;
+  var dx = mx - cx;
+  var dy = my - cy;
+  var newR = Math.sqrt(dx*dx + dy*dy);
+  radius = Math.max(MIN_R, Math.min(MAX_R, newR));
+  positionHandle(dx, dy);
+  draw();
+  updateStats();
+}
+
+function endDrag() { isDragging = false; }
+
+function positionHandle(dx, dy) {
+  var handle = document.getElementById('drag-handle');
+  var angle = (dx !== undefined && dy !== undefined)
+    ? Math.atan2(dy, dx)
+    : Math.PI / 4; // default angle (bottom-right)
+  var hx = cx + radius * Math.cos(angle);
+  var hy = cy + radius * Math.sin(angle);
+  handle.style.left = hx + 'px';
+  handle.style.top  = hy + 'px';
+}
+
+function positionHomeBase() {
+  var hb = document.getElementById('hb-marker');
+  // First store (visited = true) = home base
+  var s = stores[0];
+  hb.style.left = (cx + s.x) + 'px';
+  hb.style.top  = (cy + s.y) + 'px';
+}
+
+// ── DRAW ───────────────────────────────────────────
+function draw() {
+  if (!ctx) ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  // Map background
+  drawMapBase();
+
+  // Circle fill
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(206,34,41,0.06)';
+  ctx.fill();
+
+  // Circle stroke
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(206,34,41,0.6)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6,4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Center crosshair
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(206,34,41,0.4)';
+  ctx.fill();
+
+  // Store dots
+  stores.forEach(function(s) {
+    var sx = cx + s.x;
+    var sy = cy + s.y;
+    var inside = Math.sqrt(s.x*s.x + s.y*s.y) < radius;
+    var r = inside ? 6 : 4;
+
+    // Glow for inside stores
+    if (inside) {
+      ctx.beginPath();
+      ctx.arc(sx, sy, r+4, 0, Math.PI*2);
+      ctx.fillStyle = s.visited
+        ? 'rgba(59,109,17,0.15)'
+        : 'rgba(206,34,41,0.12)';
+      ctx.fill();
+    }
+
+    ctx.beginPath();
+    ctx.arc(sx, sy, r, 0, Math.PI*2);
+
+    if (s.visited) {
+      ctx.fillStyle = inside ? '#3B6D11' : '#97C459';
+    } else {
+      ctx.fillStyle = inside ? '#CE2229' : 'rgba(180,178,169,0.7)';
+    }
+    ctx.fill();
+
+    // White border on inside stores
+    if (inside) {
+      ctx.beginPath();
+      ctx.arc(sx, sy, r, 0, Math.PI*2);
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+  });
+
+  // Update count badge
+  updateStats();
+}
+
+function drawMapBase() {
+  // Warm cream base
+  ctx.fillStyle = '#f0ece4';
+  ctx.fillRect(0, 0, W, H);
+
+  // Road-like lines (simplified upstate NY grid)
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+  ctx.lineWidth = 3;
+  var roads = [
+    // Horizontal
+    [0, cy-80, W, cy-80],
+    [0, cy+40, W, cy+40],
+    [0, cy+120, W, cy+120],
+    // Vertical
+    [cx-70, 0, cx-70, H],
+    [cx+50, 0, cx+50, H],
+    [cx+140, 0, cx+140, H],
+    // Diagonal (like Route 9 north)
+    [cx-20, 0, cx+40, H],
+  ];
+  roads.forEach(([x1,y1,x2,y2]) => {
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  });
+
+  // Thinner roads
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 1.5;
+  var minor = [
+    [0, cy-140, W*0.6, cy-140],
+    [cx-120, 0, cx-120, H*0.7],
+    [cx+80, H*0.3, cx+80, H],
+  ];
+  minor.forEach(([x1,y1,x2,y2]) => {
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  });
+
+  // Water body hint (Hudson River)
+  ctx.fillStyle = 'rgba(180,210,230,0.35)';
+  ctx.beginPath();
+  ctx.moveTo(cx+55, 0);
+  ctx.bezierCurveTo(cx+65, H*0.3, cx+50, H*0.6, cx+60, H);
+  ctx.lineTo(cx+80, H);
+  ctx.bezierCurveTo(cx+75, H*0.6, cx+85, H*0.3, cx+80, 0);
+  ctx.closePath();
+  ctx.fill();
+}
+
+// ── STATS ──────────────────────────────────────────
+function countInside() {
+  return stores.filter(s => Math.sqrt(s.x*s.x + s.y*s.y) < radius).length;
+}
+
+function updateStats() {
+  var n = countInside();
+  var mi = Math.round(radius * 0.22); // rough px→miles
+  var level, diff, color;
+
+  document.getElementById('count-num').textContent = n;
+
+  if (n <= 3)       { level='Very Easy'; diff=12;  color='var(--green)'; }
+  else if (n <= 6)  { level='Easy';      diff=25;  color='var(--green)'; }
+  else if (n <= 10) { level='Medium';    diff=45;  color='var(--amber)'; }
+  else if (n <= 16) { level='Hard';      diff=68;  color='var(--red)'; }
+  else if (n <= 20) { level='Very Hard'; diff=84;  color='var(--red)'; }
+  else              { level='Epic';      diff=96;  color='#500000'; }
+
+  document.getElementById('stat-stores').textContent = n;
+  document.getElementById('stat-radius').textContent = mi + ' mi';
+  document.getElementById('stat-level').textContent  = level;
+  document.getElementById('diff-label').textContent  = level + ' challenge';
+  document.getElementById('diff-fill').style.width   = diff + '%';
+  document.getElementById('diff-fill').style.background = color;
+
+  var btn = document.getElementById('confirm-btn');
+  btn.disabled = n < 3;
+  btn.textContent = n < 3 ? 'Expand your run — need at least 3 stores' : 'Confirm my run →';
+
+  // Count badge color
+  var badge = document.getElementById('count-badge');
+  badge.style.background = n < 3 ? '#5a5450' : 'var(--dark)';
+}
+
+// ── CONFIRM ────────────────────────────────────────
+function confirmRun() {
+  var n = countInside();
+  var mi = Math.round(radius * 0.22);
+
+  // Brief success flash
+  var btn = document.getElementById('confirm-btn');
+  btn.style.background = 'var(--green)';
+  btn.textContent = '✓ Run confirmed — ' + n + ' stores · ' + mi + ' mi radius';
+
+  setTimeout(() => {
+    window.location.href = 'home.html';
+  }, 1200);
+}
+
+// Initialise on load
+document.addEventListener('DOMContentLoaded', function() {
+  var panel = document.getElementById('dev-panel');
+  var shell = document.getElementById('shell');
+  if (panel && shell) shell.style.paddingTop = (panel.offsetHeight + 2) + 'px';
+});
+</script>
+
+</body>
+</html>

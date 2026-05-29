@@ -537,6 +537,31 @@ html, body {
 </head>
 <body>
 
+<!-- ── DEV NAV ────────────────────────────────────── -->
+<div id="dev-nav" style="position:fixed;top:0;left:50%;transform:translateX(-50%);width:390px;z-index:9999;font-family:'DM Mono',monospace;">
+  <div id="dev-pill" onclick="toggleDevNav()" style="position:absolute;top:6px;right:10px;background:rgba(15,13,11,0.75);color:rgba(255,255,255,0.6);font-size:9px;letter-spacing:0.5px;padding:3px 8px;border-radius:100px;cursor:pointer;z-index:10000;backdrop-filter:blur(8px);user-select:none;">DEV ▾</div>
+  <div id="dev-panel" style="background:rgba(15,13,11,0.88);backdrop-filter:blur(12px);padding:10px 12px 8px;border-bottom:0.5px solid rgba(255,255,255,0.08);">
+    <div style="font-size:8px;color:rgba(255,255,255,0.35);letter-spacing:1.5px;margin-bottom:7px;">PROTOTYPE NAV — NOT IN PRODUCTION</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;">
+      <button onclick="devGoTo('s-welcome')"   class="dnb" id="dnb-s-welcome">Welcome</button>
+      <button onclick="devGoTo('s-account')"   class="dnb" id="dnb-s-account">Account</button>
+      <button onclick="devGoTo('s-teamname')"  class="dnb" id="dnb-s-teamname">Team name</button>
+      <button onclick="devGoTo('s-mode')"      class="dnb" id="dnb-s-mode">Mode</button>
+      <button onclick="devGoTo('s-county')"    class="dnb" id="dnb-s-county">County</button>
+      <button onclick="devGoTo('s-edit-team')" class="dnb" id="dnb-s-edit-team">Edit team</button>
+      <a href="territory.html" class="dnb" style="text-decoration:none;display:inline-flex;align-items:center;">→ Territory</a>
+      <a href="home.html" class="dnb" style="text-decoration:none;display:inline-flex;align-items:center;">→ Home</a>
+    </div>
+  </div>
+</div>
+<style>
+.dnb{background:rgba(255,255,255,0.08);border:0.5px solid rgba(255,255,255,0.15);border-radius:6px;padding:4px 10px;font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,0.65);cursor:pointer;transition:background .15s,color .15s;white-space:nowrap;}
+.dnb:hover{background:rgba(255,255,255,0.16);color:white;}
+.dnb.dnb-active{background:rgba(206,34,41,0.5);border-color:rgba(206,34,41,0.7);color:white;}
+#dev-nav.nav-hidden #dev-panel{display:none;}
+#dev-nav.nav-hidden #dev-pill::after{content:'▸';} 
+</style>
+
 <div class="shell">
 
   <!-- ── SCREEN 1: WELCOME ─────────────────────── -->
@@ -918,7 +943,7 @@ html, body {
 
 <script>
 // ── NAVIGATION ──────────────────────────────────
-var history = [];
+var navHistory = [];
 
 function goTo(id) {
   var current = document.querySelector('.screen.active');
@@ -926,15 +951,17 @@ function goTo(id) {
     current.classList.add('exit');
     setTimeout(() => current.classList.remove('active','exit'), 280);
   }
-  history.push(current ? current.id : null);
+  navHistory.push(current ? current.id : null);
   setTimeout(() => {
     var next = document.getElementById(id);
+    if (!next) return;
     next.classList.add('active');
     next.querySelectorAll('.fu').forEach(el => {
       el.style.animation = 'none';
       el.offsetHeight;
       el.style.animation = '';
     });
+    setDevActive(id);
   }, 50);
 }
 
@@ -951,9 +978,50 @@ function goBack(id) {
   }
   setTimeout(() => {
     var prev = document.getElementById(id);
+    if (!prev) return;
     prev.classList.add('active');
+    setDevActive(id);
   }, 50);
 }
+
+// ── DEV NAV ─────────────────────────────────────
+function devGoTo(id) {
+  // Instant jump — no animation, for dev use
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active','exit');
+    s.style.transform = '';
+    s.style.opacity = '';
+  });
+  var target = document.getElementById(id);
+  if (target) target.classList.add('active');
+  setDevActive(id);
+}
+
+function setDevActive(id) {
+  document.querySelectorAll('.dnb').forEach(b => b.classList.remove('dnb-active'));
+  var btn = document.getElementById('dnb-' + id);
+  if (btn) btn.classList.add('dnb-active');
+}
+
+function toggleDevNav() {
+  var nav = document.getElementById('dev-nav');
+  nav.classList.toggle('nav-hidden');
+  var pill = document.getElementById('dev-pill');
+  pill.textContent = nav.classList.contains('nav-hidden') ? 'DEV ▸' : 'DEV ▾';
+  // Push shell down when nav is visible
+  var shell = document.querySelector('.shell');
+  shell.style.paddingTop = nav.classList.contains('nav-hidden') ? '0' : '';
+}
+
+// Offset shell to make room for dev nav on load
+document.addEventListener('DOMContentLoaded', function() {
+  var panel = document.getElementById('dev-panel');
+  var shell = document.querySelector('.shell');
+  if (panel && shell) {
+    shell.style.paddingTop = (panel.offsetHeight + 2) + 'px';
+  }
+  setDevActive('s-welcome');
+});
 
 // ── CLOCK ───────────────────────────────────────
 function tick() {
@@ -1204,7 +1272,7 @@ function showAllCounties() {
 }
 
 function finishOnboarding() {
-  alert('🍦 Welcome to ConeCoreRun!\n\nRedirecting to your home screen...\n\n(In the full prototype this routes to home.html)');
+  window.location.href = 'territory.html';
 }
 </script>
 
