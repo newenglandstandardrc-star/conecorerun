@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ConeCoreRun — Welcome</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --red:        #CE2229;
+  --red-dark:   #791F1F;
+  --red-mid:    #F09595;
+  --red-light:  #FCEBEB;
+  --amber:      #BA7517;
+  --amber-light:#FAEEDA;
+  --green:      #3B6D11;
+  --green-light:#EAF3DE;
+  --blue:       #185FA5;
+  --blue-light: #E6F1FB;
+  --dark:       #0F0D0B;
+  --muted:      #7a736a;
+  --border:     rgba(0,0,0,0.08);
+  --surface:    #F5F1EA;
+  --card:       #FFFFFF;
+  --cream:      #FBF8F2;
+  --text:       #1a1814;
+  --r:          14px;
+  --r-sm:       8px;
+  --r-full:     100px;
+}
+
+html, body {
+  height: 100%;
+  background: #1a1814;
+  font-family: "DM Sans", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  width: 390px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: var(--cream);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── SCREEN SYSTEM ────────────────────────────── */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--cream);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(24px);
+  transition: opacity 0.28s ease, transform 0.28s ease;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.screen::-webkit-scrollbar { display: none; }
+.screen.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateX(0);
+}
+.screen.exit {
+  opacity: 0;
+  transform: translateX(-24px);
+}
+
+/* ── STATUS BAR ─────────────────────────────── */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px 4px;
+  flex-shrink: 0;
+}
+.status-time {
+  font-family: "DM Mono", monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+}
+.status-icons { font-size: 11px; color: var(--muted); }
+
+/* ── PROGRESS DOTS ──────────────────────────── */
+.progress-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 0 4px;
+  flex-shrink: 0;
+}
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.2s, width 0.2s;
+}
+.dot.active {
+  background: var(--red);
+  width: 18px;
+  border-radius: 3px;
+}
+.dot.done { background: var(--red); opacity: 0.35; }
+
+/* ── BACK BUTTON ────────────────────────────── */
+.back-btn {
+  background: none;
+  border: none;
+  padding: 8px 20px;
+  font-size: 22px;
+  color: var(--muted);
+  cursor: pointer;
+  align-self: flex-start;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* ── SCREEN CONTENT ─────────────────────────── */
+.screen-body {
+  flex: 1;
+  padding: 8px 20px 32px;
+  display: flex;
+  flex-direction: column;
+}
+
+.screen-eyebrow {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.screen-title {
+  font-family: "Syne", sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+
+.screen-sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+/* ── FORM ELEMENTS ──────────────────────────── */
+.field { margin-bottom: 14px; }
+
+.field-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.field-input {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  font-size: 15px;
+  font-family: "DM Sans", sans-serif;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+.field-input:focus { border-color: var(--red); }
+.field-input::placeholder { color: #c0b8b0; }
+.field-input.error { border-color: var(--red); background: var(--red-light); }
+
+.field-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 5px;
+  line-height: 1.4;
+}
+.field-hint.error-msg { color: var(--red); }
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ── SELECT ─────────────────────────────────── */
+.field-select {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  font-size: 15px;
+  font-family: "DM Sans", sans-serif;
+  color: var(--text);
+  outline: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.field-select:focus { border-color: var(--red); }
+
+/* ── TEAM NAME AVAILABILITY ─────────────────── */
+.name-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  margin-top: 5px;
+  min-height: 16px;
+}
+.check-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.check-dot.checking { background: var(--amber); animation: pulse 1s infinite; }
+.check-dot.available { background: var(--green); }
+.check-dot.taken { background: var(--red); }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── MODE CARDS ─────────────────────────────── */
+.mode-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+
+.mode-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+}
+.mode-card:hover { border-color: rgba(206,34,41,0.3); }
+.mode-card.selected {
+  border-color: var(--red);
+  background: var(--red-light);
+}
+
+.mode-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.mode-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.mode-title {
+  font-family: "Syne", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.mode-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  margin-left: auto;
+}
+.mode-body {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.55;
+  padding-left: 52px;
+}
+
+.mode-radio {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: white;
+  transition: border-color 0.15s, background 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.mode-card.selected .mode-radio {
+  border-color: var(--red);
+  background: var(--red);
+}
+.mode-card.selected .mode-radio::after {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: white;
+}
+
+/* ── SCOOPERS LIST ──────────────────────────── */
+.scoopers-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+
+.scooper-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 10px 13px;
+}
+
+.scooper-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.scooper-info { flex: 1; min-width: 0; }
+.scooper-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.scooper-status {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: var(--r-full);
+  display: inline-block;
+  margin-top: 2px;
+}
+
+.scooper-remove {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.scooper-remove:hover { color: var(--red); }
+
+.add-scooper-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 1px dashed rgba(0,0,0,0.15);
+  border-radius: var(--r-sm);
+  padding: 10px 13px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  width: 100%;
+  font-family: "DM Sans", sans-serif;
+  transition: border-color 0.15s, color 0.15s;
+  margin-bottom: 16px;
+}
+.add-scooper-btn:hover { border-color: var(--red); color: var(--red); }
+
+/* ── SCOOPER MODAL ──────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,13,11,0.5);
+  z-index: 300;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.modal-backdrop.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal-sheet {
+  width: 390px;
+  background: var(--cream);
+  border-radius: 24px 24px 0 0;
+  padding: 20px 20px 40px;
+  transform: translateY(100%);
+  transition: transform 0.28s cubic-bezier(0.34,1.1,0.64,1);
+}
+.modal-backdrop.open .modal-sheet {
+  transform: translateY(0);
+}
+
+.modal-handle {
+  width: 40px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+.modal-title {
+  font-family: "Syne", sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+/* ── COUNTY GRID ────────────────────────────── */
+.county-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.county-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: left;
+}
+.county-card:hover { border-color: rgba(206,34,41,0.3); }
+.county-card.selected {
+  border-color: var(--red);
+  background: var(--red-light);
+}
+.county-card-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.county-card-count { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.county-card-bar { height: 2px; background: var(--border); border-radius: 1px; margin-top: 8px; overflow: hidden; }
+.county-card-fill { height: 100%; background: var(--red); border-radius: 1px; }
+
+/* ── PRIVACY NOTE ───────────────────────────── */
+.privacy-note {
+  background: var(--red-light);
+  border: 0.5px solid var(--red-mid);
+  border-radius: var(--r-sm);
+  padding: 10px 13px;
+  font-size: 11px;
+  color: var(--red-dark);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+.privacy-note strong { color: var(--red-dark); }
+
+/* ── CTA BUTTON ─────────────────────────────── */
+.cta-btn {
+  width: 100%;
+  background: var(--red);
+  border: none;
+  border-radius: var(--r);
+  padding: 15px;
+  font-family: "Syne", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  letter-spacing: 0.2px;
+  transition: background 0.15s, transform 0.1s;
+  margin-top: auto;
+}
+.cta-btn:hover { background: #b01e24; }
+.cta-btn:active { transform: scale(0.99); }
+.cta-btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+
+.cta-btn-ghost {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 13px;
+  font-family: "DM Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  margin-top: 8px;
+}
+.cta-btn-ghost:hover { border-color: var(--red); color: var(--red); }
+
+/* ── LEGAL TEXT ─────────────────────────────── */
+.legal-text {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.55;
+  text-align: center;
+  margin-top: 12px;
+}
+.legal-text a { color: var(--red); text-decoration: none; }
+
+/* ── ANIMATIONS ─────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fu { animation: fadeUp 0.35s ease both; }
+.fu1 { animation-delay: 0.04s; }
+.fu2 { animation-delay: 0.10s; }
+.fu3 { animation-delay: 0.16s; }
+.fu4 { animation-delay: 0.22s; }
+.fu5 { animation-delay: 0.28s; }
+
+/* ── EDIT TEAM BANNER ───────────────────────── */
+.edit-team-banner {
+  background: var(--amber-light);
+  border: 0.5px solid #EF9F27;
+  border-radius: var(--r-sm);
+  padding: 9px 13px;
+  font-size: 11px;
+  color: #633806;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 420px) {
+  .shell { width: 100%; }
+  .modal-sheet { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ── SCREEN 1: WELCOME ─────────────────────── -->
+  <div class="screen active" id="s-welcome">
+    <div class="status-bar">
+      <span class="status-time" id="clock1">9:41</span>
+      <span class="status-icons">●●● WiFi █▉</span>
+    </div>
+    <div class="progress-dots">
+      <div class="dot active" id="dot-1-1"></div>
+      <div class="dot" id="dot-1-2"></div>
+      <div class="dot" id="dot-1-3"></div>
+      <div class="dot" id="dot-1-4"></div>
+      <div class="dot" id="dot-1-5"></div>
+    </div>
+    <div class="screen-body" style="justify-content:space-between;">
+      <div>
+        <div style="margin-bottom:28px;margin-top:12px;">
+          <div style="font-family:'Syne',sans-serif;font-size:42px;font-weight:800;color:var(--red);line-height:0.95;letter-spacing:-1px;" class="fu fu1">Cone<br>Core<br>Run</div>
+        </div>
+        <p class="screen-title fu fu2" style="font-size:20px;">364 Stewart's locations.<br>One game. Go.</p>
+        <p class="screen-sub fu fu3">Find the hidden QR code inside each store. Earn Scoops. Complete counties. Win the network.</p>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;" class="fu fu4">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:28px;height:28px;border-radius:8px;background:var(--red-light);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🗺</div>
+            <span style="font-size:13px;color:var(--muted);">NY · VT · NH — 30+ counties</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:28px;height:28px;border-radius:8px;background:var(--amber-light);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🍦</div>
+            <span style="font-size:13px;color:var(--muted);">Earn Scoops · redeem for real Stewart's rewards</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:28px;height:28px;border-radius:8px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">👨‍👩‍👧</div>
+            <span style="font-size:13px;color:var(--muted);">Solo or family mode — bring your Scoopers</span>
+          </div>
+        </div>
+      </div>
+      <div class="fu fu5">
+        <button class="cta-btn" onclick="goTo('s-account')">Let's go →</button>
+        <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:10px;cursor:pointer;" onclick="goTo('s-account')">Already have an account? <span style="color:var(--red);font-weight:500;">Sign in</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 2: ACCOUNT ─────────────────────── -->
+  <div class="screen" id="s-account">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <span class="status-icons">●●● WiFi █▉</span>
+    </div>
+    <div class="progress-dots">
+      <div class="dot done"></div>
+      <div class="dot active"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+    <button class="back-btn" onclick="goBack('s-welcome')">←</button>
+    <div class="screen-body">
+      <p class="screen-eyebrow fu fu1">Step 1 of 4</p>
+      <h1 class="screen-title fu fu1">Create your account</h1>
+      <p class="screen-sub fu fu2">You must be 18 or older to play. Your personal details are never shared with other players — ever.</p>
+
+      <div class="fu fu2">
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label">First name</label>
+            <input class="field-input" type="text" placeholder="Mike" id="first-name" autocomplete="given-name">
+          </div>
+          <div class="field">
+            <label class="field-label">Last name</label>
+            <input class="field-input" type="text" placeholder="T." id="last-name" autocomplete="family-name">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Email address</label>
+          <input class="field-input" type="email" placeholder="you@email.com" id="email" autocomplete="email">
+          <p class="field-hint">Never shown to other players or shared with third parties.</p>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Date of birth</label>
+          <input class="field-input" type="date" id="dob" max="2007-01-01">
+          <p class="field-hint" id="age-hint">Must be 18 or older to participate in prizes and Scoops redemption.</p>
+        </div>
+
+        <div class="field">
+          <label class="field-label">State</label>
+          <select class="field-select" id="state">
+            <option value="">Select your state</option>
+            <option value="NY">New York</option>
+            <option value="VT">Vermont</option>
+            <option value="NH">New Hampshire</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Password</label>
+          <input class="field-input" type="password" placeholder="8+ characters" id="password" autocomplete="new-password">
+        </div>
+      </div>
+
+      <div class="privacy-note fu fu3">
+        <strong>Privacy first.</strong> Your name and email are used only for your account and legal contest requirements. They are never displayed to other players. On leaderboards and in sprints, you are identified only by your team name.
+      </div>
+
+      <button class="cta-btn fu fu4" onclick="validateAccount()">Continue →</button>
+      <p class="legal-text">By continuing you agree to our <a href="#">Official Rules</a>, <a href="#">Privacy Policy</a>, and <a href="#">Terms of Service</a>. Void where prohibited. Must be 18+ to win prizes.</p>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 3: TEAM NAME ───────────────────── -->
+  <div class="screen" id="s-teamname">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <span class="status-icons">●●● WiFi █▉</span>
+    </div>
+    <div class="progress-dots">
+      <div class="dot done"></div>
+      <div class="dot done"></div>
+      <div class="dot active"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+    <button class="back-btn" onclick="goBack('s-account')">←</button>
+    <div class="screen-body">
+      <p class="screen-eyebrow fu fu1">Step 2 of 4</p>
+      <h1 class="screen-title fu fu1">Name your crew</h1>
+      <p class="screen-sub fu fu2">This is how you'll appear on every leaderboard and sprint. Your real name stays private — always.</p>
+
+      <div class="fu fu2">
+        <div class="field">
+          <label class="field-label">Team name</label>
+          <input class="field-input" type="text" placeholder="e.g. Troy Road Warriors" id="team-name"
+            oninput="checkTeamName(this.value)" maxlength="28" autocomplete="off" autocorrect="off" spellcheck="false">
+          <div class="name-check" id="name-check">
+            <div class="check-dot" id="check-dot"></div>
+            <span id="check-msg" style="color:var(--muted)">Choose something unique — this is your public identity</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="fu fu3" style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--r-sm);padding:13px 14px;margin-bottom:16px;">
+        <p style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.5px;margin-bottom:8px;">TEAM NAME RULES</p>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:7px;">
+            <span style="font-size:11px;" id="rule-len">○</span>
+            <span style="font-size:12px;color:var(--muted);" id="rule-len-txt">Between 3 and 28 characters</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;">
+            <span style="font-size:11px;" id="rule-unique">○</span>
+            <span style="font-size:12px;color:var(--muted);" id="rule-unique-txt">Must be unique across all players</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;">
+            <span style="font-size:11px;">○</span>
+            <span style="font-size:12px;color:var(--muted);">No real names, phone numbers, or email addresses</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;">
+            <span style="font-size:11px;">○</span>
+            <span style="font-size:12px;color:var(--muted);">Editable later in Profile settings</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="privacy-note fu fu4">
+        <strong>Why is this required?</strong> Your team name is the only identity other players ever see. We enforce unique names to ensure no two players share an identity, and to protect everyone's privacy.
+      </div>
+
+      <button class="cta-btn fu fu5" id="teamname-cta" onclick="validateTeamName()" disabled>Continue →</button>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 4: MODE + SCOOPERS ────────────── -->
+  <div class="screen" id="s-mode">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <span class="status-icons">●●● WiFi █▉</span>
+    </div>
+    <div class="progress-dots">
+      <div class="dot done"></div>
+      <div class="dot done"></div>
+      <div class="dot done"></div>
+      <div class="dot active"></div>
+      <div class="dot"></div>
+    </div>
+    <button class="back-btn" onclick="goBack('s-teamname')">←</button>
+    <div class="screen-body">
+      <p class="screen-eyebrow fu fu1">Step 3 of 4</p>
+      <h1 class="screen-title fu fu1">How are you playing?</h1>
+      <p class="screen-sub fu fu2">Playing with family? Add your Scoopers. Under-18s join in the fun but prizes stay on the main account.</p>
+
+      <div class="mode-cards fu fu2">
+        <div class="mode-card selected" id="mode-solo" onclick="selectMode('solo')">
+          <div class="mode-radio"></div>
+          <div class="mode-card-header">
+            <div class="mode-icon" style="background:var(--red-light);">🏃</div>
+            <div>
+              <div class="mode-title">Solo</div>
+            </div>
+            <span class="mode-tag" style="background:var(--red-light);color:var(--red-dark);">Default</span>
+          </div>
+          <div class="mode-body">Just you. Race strangers or challenge friends when you're ready.</div>
+        </div>
+
+        <div class="mode-card" id="mode-family" onclick="selectMode('family')">
+          <div class="mode-radio"></div>
+          <div class="mode-card-header">
+            <div class="mode-icon" style="background:var(--amber-light);">👨‍👩‍👧</div>
+            <div>
+              <div class="mode-title">Family mode</div>
+            </div>
+            <span class="mode-tag" style="background:var(--amber-light);color:#633806;">Scoopers</span>
+          </div>
+          <div class="mode-body">Add family members to your crew. Kids under 18 check in and celebrate — prizes go to the main account.</div>
+        </div>
+      </div>
+
+      <!-- SCOOPERS SECTION (shown in family mode) -->
+      <div id="scoopers-section" style="display:none;">
+        <p style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.5px;margin-bottom:8px;" class="fu fu1">YOUR SCOOPERS</p>
+
+        <div class="scoopers-list" id="scoopers-list">
+          <!-- populated by JS -->
+        </div>
+
+        <button class="add-scooper-btn" onclick="openScooperModal()">
+          <span style="font-size:18px;line-height:1;">+</span>
+          Add a Scooper
+        </button>
+
+        <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;margin-bottom:16px;font-size:11px;color:var(--muted);line-height:1.55;">
+          <strong style="color:var(--text);">Scoopers under 18</strong> can check in, view the map, and celebrate milestones — but Scoops and prizes are held on the main account until they turn 18 and create their own account.
+        </div>
+      </div>
+
+      <button class="cta-btn" onclick="goTo('s-county')">Continue →</button>
+      <button class="cta-btn-ghost" onclick="goTo('s-county')">Skip for now — set up later</button>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 5: HOME COUNTY ─────────────────── -->
+  <div class="screen" id="s-county">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <span class="status-icons">●●● WiFi █▉</span>
+    </div>
+    <div class="progress-dots">
+      <div class="dot done"></div>
+      <div class="dot done"></div>
+      <div class="dot done"></div>
+      <div class="dot done"></div>
+      <div class="dot active"></div>
+    </div>
+    <button class="back-btn" onclick="goBack('s-mode')">←</button>
+    <div class="screen-body">
+      <p class="screen-eyebrow fu fu1">Step 4 of 4</p>
+      <h1 class="screen-title fu fu1">Pick your home county</h1>
+      <p class="screen-sub fu fu2">This is where your first heat starts. You can race other counties any time — but this one's home base.</p>
+
+      <div class="county-grid fu fu2" id="county-grid">
+        <!-- populated by JS -->
+      </div>
+
+      <p style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:16px;" class="fu fu3">Don't see yours? <span style="color:var(--red);cursor:pointer;" onclick="showAllCounties()">Show all 30+ counties →</span></p>
+
+      <div class="edit-team-banner fu fu4">
+        <strong>You can change this any time.</strong> Home county, mode, and Scoopers are all editable in Profile → Team Settings.
+      </div>
+
+      <button class="cta-btn fu fu5" id="county-cta" onclick="finishOnboarding()" disabled>Start playing →</button>
+    </div>
+  </div>
+
+  <!-- ── EDIT TEAM SETTINGS (accessible mid-game) ── -->
+  <div class="screen" id="s-edit-team">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <span class="status-icons">●●● WiFi █▉</span>
+    </div>
+    <button class="back-btn" onclick="goBack('s-county')">←</button>
+    <div class="screen-body">
+      <h1 class="screen-title fu fu1">Team settings</h1>
+      <p class="screen-sub fu fu2">Update your team name, mode, or Scoopers any time. Changes take effect immediately.</p>
+
+      <p style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.5px;margin-bottom:8px;" class="fu fu2">TEAM NAME</p>
+      <div class="field fu fu2">
+        <input class="field-input" type="text" value="Troy Road Warriors" id="edit-team-name"
+          oninput="checkTeamName(this.value,'edit')" maxlength="28">
+        <div class="name-check" id="edit-name-check">
+          <div class="check-dot available" id="edit-check-dot"></div>
+          <span id="edit-check-msg" style="color:var(--green);">Available</span>
+        </div>
+      </div>
+
+      <p style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.5px;margin:14px 0 8px;" class="fu fu3">MODE</p>
+      <div class="mode-cards fu fu3" style="margin-bottom:8px;">
+        <div class="mode-card selected" id="edit-mode-solo" onclick="selectEditMode('solo')">
+          <div class="mode-radio"></div>
+          <div class="mode-card-header">
+            <div class="mode-icon" style="background:var(--red-light);font-size:16px;">🏃</div>
+            <div class="mode-title">Solo</div>
+          </div>
+        </div>
+        <div class="mode-card" id="edit-mode-family" onclick="selectEditMode('family')">
+          <div class="mode-radio"></div>
+          <div class="mode-card-header">
+            <div class="mode-icon" style="background:var(--amber-light);font-size:16px;">👨‍👩‍👧</div>
+            <div class="mode-title">Family mode</div>
+          </div>
+        </div>
+      </div>
+
+      <p style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.5px;margin:14px 0 8px;" class="fu fu3">SCOOPERS</p>
+      <div class="scoopers-list fu fu3" id="edit-scoopers-list">
+        <div class="scooper-row">
+          <div class="scooper-avatar" style="background:var(--amber-light);color:#633806;">E</div>
+          <div class="scooper-info">
+            <div class="scooper-name">Emma</div>
+            <span class="scooper-status" style="background:var(--amber-light);color:#633806;">Under 18 · fun only</span>
+          </div>
+          <button class="scooper-remove" onclick="removeScooper(this)">×</button>
+        </div>
+        <div class="scooper-row">
+          <div class="scooper-avatar" style="background:var(--blue-light);color:#0C447C;">J</div>
+          <div class="scooper-info">
+            <div class="scooper-name">Jake</div>
+            <span class="scooper-status" style="background:var(--blue-light);color:#0C447C;">Under 18 · fun only</span>
+          </div>
+          <button class="scooper-remove" onclick="removeScooper(this)">×</button>
+        </div>
+      </div>
+      <button class="add-scooper-btn fu fu3" onclick="openScooperModal()">
+        <span style="font-size:18px;line-height:1;">+</span>
+        Add a Scooper
+      </button>
+
+      <div class="privacy-note fu fu4">
+        <strong>Privacy reminder:</strong> Only your team name is ever visible to other players. Your name, email, and date of birth are never shared or displayed.
+      </div>
+
+      <button class="cta-btn fu fu5" onclick="goBack('s-county')">Save changes</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── ADD SCOOPER MODAL ──────────────────────── -->
+<div class="modal-backdrop" id="scooper-modal" onclick="closeScooperModalOutside(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add a Scooper</div>
+
+    <div class="field">
+      <label class="field-label">First name (or nickname)</label>
+      <input class="field-input" type="text" placeholder="Emma" id="scooper-name-input">
+      <p class="field-hint">Only you see this — used to identify your Scoopers on your account.</p>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Age</label>
+      <select class="field-select" id="scooper-age">
+        <option value="">Select age</option>
+        <option value="under7">Under 7</option>
+        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+        <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+        <option value="13">13</option><option value="14">14</option><option value="15">15</option>
+        <option value="16">16</option><option value="17">17</option>
+        <option value="18plus">18 or older</option>
+      </select>
+    </div>
+
+    <div id="scooper-age-note" style="display:none;margin-bottom:12px;"></div>
+
+    <button class="cta-btn" onclick="addScooper()">Add Scooper</button>
+    <button class="cta-btn-ghost" onclick="closeScooperModal()">Cancel</button>
+  </div>
+</div>
+
+<script>
+// ── NAVIGATION ──────────────────────────────────
+var history = [];
+
+function goTo(id) {
+  var current = document.querySelector('.screen.active');
+  if (current) {
+    current.classList.add('exit');
+    setTimeout(() => current.classList.remove('active','exit'), 280);
+  }
+  history.push(current ? current.id : null);
+  setTimeout(() => {
+    var next = document.getElementById(id);
+    next.classList.add('active');
+    next.querySelectorAll('.fu').forEach(el => {
+      el.style.animation = 'none';
+      el.offsetHeight;
+      el.style.animation = '';
+    });
+  }, 50);
+}
+
+function goBack(id) {
+  var current = document.querySelector('.screen.active');
+  if (current) {
+    current.style.transform = 'translateX(24px)';
+    current.style.opacity = '0';
+    setTimeout(() => {
+      current.classList.remove('active');
+      current.style.transform = '';
+      current.style.opacity = '';
+    }, 280);
+  }
+  setTimeout(() => {
+    var prev = document.getElementById(id);
+    prev.classList.add('active');
+  }, 50);
+}
+
+// ── CLOCK ───────────────────────────────────────
+function tick() {
+  var now = new Date();
+  var t = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+  document.querySelectorAll('.status-time').forEach(el => el.textContent = t);
+}
+tick();
+setInterval(tick, 30000);
+
+// ── ACCOUNT VALIDATION ──────────────────────────
+function validateAccount() {
+  var fn = document.getElementById('first-name').value.trim();
+  var em = document.getElementById('email').value.trim();
+  var dob = document.getElementById('dob').value;
+  var st = document.getElementById('state').value;
+  var pw = document.getElementById('password').value;
+
+  var ok = fn && em && dob && st && pw.length >= 8;
+
+  // Age check
+  if (dob) {
+    var age = (new Date() - new Date(dob)) / (365.25*24*3600*1000);
+    var hint = document.getElementById('age-hint');
+    if (age < 18) {
+      hint.textContent = '⚠ You must be 18 or older to participate in prizes.';
+      hint.className = 'field-hint error-msg';
+      ok = false;
+    } else {
+      hint.textContent = '✓ Age verified';
+      hint.className = 'field-hint';
+      hint.style.color = 'var(--green)';
+    }
+  }
+
+  if (ok) goTo('s-teamname');
+}
+
+// ── TEAM NAME CHECK ─────────────────────────────
+var takenNames = ['troy squad','queensbury kings','the scooper gang','team deb','team mike','albany crew'];
+var checkTimer;
+
+function checkTeamName(val, context) {
+  var ctx = context || 'new';
+  var dotId = ctx === 'edit' ? 'edit-check-dot' : 'check-dot';
+  var msgId = ctx === 'edit' ? 'edit-check-msg' : 'check-msg';
+  var ctaId = ctx === 'edit' ? null : 'teamname-cta';
+  var lenRuleEl = document.getElementById('rule-len');
+  var lenTxtEl = document.getElementById('rule-len-txt');
+  var uniRuleEl = document.getElementById('rule-unique');
+
+  var dot = document.getElementById(dotId);
+  var msg = document.getElementById(msgId);
+
+  clearTimeout(checkTimer);
+
+  if (val.length < 3) {
+    dot.className = 'check-dot';
+    dot.style.background = 'var(--border)';
+    msg.textContent = val.length === 0 ? 'Choose something unique — this is your public identity' : 'Keep going...';
+    msg.style.color = 'var(--muted)';
+    if (ctaId) document.getElementById(ctaId).disabled = true;
+    if (lenRuleEl) { lenRuleEl.textContent = '○'; lenTxtEl.style.color = 'var(--muted)'; }
+    return;
+  }
+
+  if (lenRuleEl) {
+    lenRuleEl.textContent = '✓';
+    lenRuleEl.style.color = 'var(--green)';
+    lenTxtEl.style.color = 'var(--green)';
+  }
+
+  dot.className = 'check-dot checking';
+  dot.style.background = '';
+  msg.textContent = 'Checking availability...';
+  msg.style.color = 'var(--amber)';
+  if (ctaId) document.getElementById(ctaId).disabled = true;
+
+  checkTimer = setTimeout(() => {
+    var taken = takenNames.includes(val.toLowerCase().trim());
+    if (taken) {
+      dot.className = 'check-dot taken';
+      dot.style.background = '';
+      msg.textContent = 'That name is taken — try another';
+      msg.style.color = 'var(--red)';
+      if (uniRuleEl) { uniRuleEl.textContent = '✗'; uniRuleEl.style.color = 'var(--red)'; }
+      if (ctaId) document.getElementById(ctaId).disabled = true;
+    } else {
+      dot.className = 'check-dot available';
+      dot.style.background = '';
+      msg.textContent = '"' + val + '" is available!';
+      msg.style.color = 'var(--green)';
+      if (uniRuleEl) { uniRuleEl.textContent = '✓'; uniRuleEl.style.color = 'var(--green)'; }
+      if (ctaId) document.getElementById(ctaId).disabled = false;
+    }
+  }, 700);
+}
+
+function validateTeamName() {
+  goTo('s-mode');
+}
+
+// ── MODE SELECTION ──────────────────────────────
+function selectMode(mode) {
+  document.getElementById('mode-solo').classList.toggle('selected', mode === 'solo');
+  document.getElementById('mode-family').classList.toggle('selected', mode === 'family');
+  document.getElementById('scoopers-section').style.display = mode === 'family' ? 'block' : 'none';
+}
+
+function selectEditMode(mode) {
+  document.getElementById('edit-mode-solo').classList.toggle('selected', mode === 'solo');
+  document.getElementById('edit-mode-family').classList.toggle('selected', mode === 'family');
+}
+
+// ── SCOOPERS ─────────────────────────────────────
+var scoopers = [];
+
+document.getElementById('scooper-age').addEventListener('change', function() {
+  var note = document.getElementById('scooper-age-note');
+  if (this.value === '18plus') {
+    note.innerHTML = '<div style="background:var(--blue-light);border:0.5px solid #85B7EB;border-radius:var(--r-sm);padding:9px 12px;font-size:11px;color:#0C447C;line-height:1.55;">This person should <strong>create their own account</strong> to earn Scoops and compete in their own right. You can still add them as a Scooper to check in together.</div>';
+    note.style.display = 'block';
+  } else if (this.value === 'under7') {
+    note.innerHTML = '<div style="background:var(--green-light);border:0.5px solid #97C459;border-radius:var(--r-sm);padding:9px 12px;font-size:11px;color:var(--green);line-height:1.55;">Little Scoopers welcome! They can tap the map and celebrate check-ins with the crew.</div>';
+    note.style.display = 'block';
+  } else if (this.value && parseInt(this.value) < 18) {
+    note.innerHTML = '<div style="background:var(--amber-light);border:0.5px solid #EF9F27;border-radius:var(--r-sm);padding:9px 12px;font-size:11px;color:#633806;line-height:1.55;">Under 18 · Scoops and prizes go to the main account. Full fun, full check-ins, full map access.</div>';
+    note.style.display = 'block';
+  } else {
+    note.style.display = 'none';
+  }
+});
+
+function openScooperModal() {
+  document.getElementById('scooper-modal').classList.add('open');
+  document.getElementById('scooper-name-input').value = '';
+  document.getElementById('scooper-age').value = '';
+  document.getElementById('scooper-age-note').style.display = 'none';
+  setTimeout(() => document.getElementById('scooper-name-input').focus(), 300);
+}
+
+function closeScooperModal() {
+  document.getElementById('scooper-modal').classList.remove('open');
+}
+
+function closeScooperModalOutside(e) {
+  if (e.target === document.getElementById('scooper-modal')) closeScooperModal();
+}
+
+var avatarColors = [
+  {bg:'var(--amber-light)',tc:'#633806'},
+  {bg:'var(--blue-light)', tc:'#0C447C'},
+  {bg:'var(--green-light)',tc:'#27500A'},
+  {bg:'var(--red-light)',  tc:'var(--red-dark)'},
+];
+
+function addScooper() {
+  var name = document.getElementById('scooper-name-input').value.trim();
+  var age  = document.getElementById('scooper-age').value;
+  if (!name || !age) return;
+
+  var isUnder18 = age !== '18plus' && (age === 'under7' || parseInt(age) < 18);
+  var col = avatarColors[scoopers.length % avatarColors.length];
+  var statusText = isUnder18 ? 'Under 18 · fun only' : 'Adult · own account recommended';
+  var statusStyle = isUnder18
+    ? 'background:var(--amber-light);color:#633806;'
+    : 'background:var(--blue-light);color:#0C447C;';
+
+  scoopers.push({name, age, col});
+  renderScoopers();
+  closeScooperModal();
+}
+
+function renderScoopers() {
+  var list = document.getElementById('scoopers-list');
+  list.innerHTML = scoopers.map((s, i) => {
+    var isUnder18 = s.age !== '18plus' && (s.age === 'under7' || parseInt(s.age) < 18);
+    var statusText = isUnder18 ? 'Under 18 · fun only' : 'Adult · own account recommended';
+    var statusStyle = isUnder18
+      ? 'background:var(--amber-light);color:#633806;'
+      : 'background:var(--blue-light);color:#0C447C;';
+    return `<div class="scooper-row">
+      <div class="scooper-avatar" style="background:${s.col.bg};color:${s.col.tc};">${s.name.charAt(0).toUpperCase()}</div>
+      <div class="scooper-info">
+        <div class="scooper-name">${s.name}</div>
+        <span class="scooper-status" style="${statusStyle}">${statusText}</span>
+      </div>
+      <button class="scooper-remove" onclick="removeScooperByIndex(${i})">×</button>
+    </div>`;
+  }).join('');
+}
+
+function removeScooperByIndex(i) {
+  scoopers.splice(i, 1);
+  renderScoopers();
+}
+
+function removeScooper(btn) {
+  btn.closest('.scooper-row').remove();
+}
+
+// ── COUNTY DATA + GRID ───────────────────────────
+var counties = [
+  {name:'Warren Co.',    state:'NY', locs:14, pct:0},
+  {name:'Washington Co.',state:'NY', locs:11, pct:0},
+  {name:'Saratoga Co.',  state:'NY', locs:38, pct:0},
+  {name:'Albany Co.',    state:'NY', locs:32, pct:0},
+  {name:'Rensselaer Co.',state:'NY', locs:22, pct:0},
+  {name:'Schenectady Co.',state:'NY',locs:18, pct:0},
+  {name:'Rutland Co.',   state:'VT', locs:9,  pct:0},
+  {name:'Bennington Co.',state:'VT', locs:6,  pct:0},
+];
+
+var selectedCounty = null;
+
+function buildCountyGrid(counties) {
+  var grid = document.getElementById('county-grid');
+  grid.innerHTML = counties.map((c,i) => `
+    <button class="county-card" onclick="selectCounty(${i})" id="county-${i}">
+      <div class="county-card-name">${c.name}</div>
+      <div class="county-card-count">${c.locs} locations · ${c.state}</div>
+      <div class="county-card-bar">
+        <div class="county-card-fill" style="width:0%"></div>
+      </div>
+    </button>
+  `).join('');
+}
+
+buildCountyGrid(counties);
+
+function selectCounty(i) {
+  document.querySelectorAll('.county-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('county-'+i).classList.add('selected');
+  selectedCounty = i;
+  document.getElementById('county-cta').disabled = false;
+}
+
+function showAllCounties() {
+  var extra = [
+    {name:'Columbia Co.', state:'NY', locs:4,  pct:0},
+    {name:'Greene Co.',   state:'NY', locs:3,  pct:0},
+    {name:'Essex Co.',    state:'NY', locs:8,  pct:0},
+    {name:'Hamilton Co.', state:'NY', locs:3,  pct:0},
+    {name:'Addison Co.',  state:'VT', locs:4,  pct:0},
+    {name:'Grafton Co.',  state:'NH', locs:3,  pct:0},
+  ];
+  buildCountyGrid(counties.concat(extra));
+}
+
+function finishOnboarding() {
+  alert('🍦 Welcome to ConeCoreRun!\n\nRedirecting to your home screen...\n\n(In the full prototype this routes to home.html)');
+}
+</script>
+
+</body>
+</html>
