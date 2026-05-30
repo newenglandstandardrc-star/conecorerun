@@ -1,7 +1,357 @@
-<!-- ConeCoreRun — Profile screen
-     Status: placeholder
-     See pitch/index.html for the current mockup of this screen
--->
-<div id="screen-profile" class="screen" data-screen="profile">
-  <!-- Profile screen content -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ConeCoreRun — Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/main.css">
+<style>
+.view { display:none; flex-direction:column; flex:1; overflow:hidden; }
+.view.active { display:flex; }
+.view-body { flex:1; overflow-y:auto; padding:0 16px 100px; scrollbar-width:none; }
+.view-body::-webkit-scrollbar { display:none; }
+
+/* PROFILE HEADER */
+.profile-header { display:flex; flex-direction:column; align-items:center; padding:16px 16px 12px; gap:8px; flex-shrink:0; }
+.profile-avatar-lg { width:68px; height:68px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:"Syne",sans-serif; font-size:22px; font-weight:800; border:2.5px solid; }
+.profile-name { font-family:"Syne",sans-serif; font-size:18px; font-weight:800; color:var(--text); }
+.profile-team { font-size:12px; color:var(--muted); margin-top:-4px; }
+.profile-pills { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+
+/* STAT GRID */
+.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.stat-card { background:var(--card); border:0.5px solid var(--border); border-radius:var(--r-sm); padding:11px 13px; }
+.stat-card-label { font-size:10px; color:var(--muted); margin-bottom:3px; }
+.stat-card-val { font-family:"Syne",sans-serif; font-size:20px; font-weight:800; color:var(--text); line-height:1; }
+.stat-card-val.red { color:var(--red); }
+
+/* TOGGLE ROW */
+.toggle-row { display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:0.5px solid var(--border); }
+.toggle-row:last-child { border-bottom:none; }
+.toggle-label { font-size:12px; font-weight:500; color:var(--text); }
+.toggle-sub { font-size:11px; color:var(--muted); margin-top:1px; }
+.toggle { width:38px; height:21px; border-radius:11px; position:relative; cursor:pointer; transition:background .2s; flex-shrink:0; }
+.toggle.on { background:var(--red); }
+.toggle.off { background:var(--border); }
+.toggle::after { content:''; position:absolute; width:17px; height:17px; border-radius:50%; background:white; top:2px; transition:left .2s; box-shadow:0 1px 4px rgba(0,0,0,0.15); }
+.toggle.on::after { left:19px; }
+.toggle.off::after { left:2px; }
+
+/* TEAM SETTINGS */
+.back-btn { background:none; border:none; font-size:22px; color:var(--muted); cursor:pointer; padding:0 0 4px; display:block; }
+.field-label { font-size:10px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin:12px 0 6px; display:block; }
+.field-input { width:100%; background:var(--card); border:1px solid var(--border); border-radius:var(--r-sm); padding:11px 13px; font-size:14px; font-family:"DM Sans",sans-serif; color:var(--text); outline:none; transition:border-color .15s; -webkit-appearance:none; }
+.field-input:focus { border-color:var(--red); }
+.name-check { display:flex; align-items:center; gap:6px; font-size:11px; margin-top:5px; min-height:16px; }
+.check-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+.scooper-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:0.5px solid var(--border); }
+.scooper-row:last-child { border-bottom:none; }
+.scooper-status { font-size:10px; font-weight:600; padding:1px 7px; border-radius:var(--r-full); display:inline-block; margin-top:2px; }
+.remove-btn { background:none; border:none; font-size:18px; color:var(--muted); cursor:pointer; padding:0; transition:color .15s; line-height:1; }
+.remove-btn:hover { color:var(--red); }
+
+/* QUIET EXIT */
+.quiet-exit-btn { width:100%; background:none; border:1.5px solid var(--red-mid); border-radius:var(--r); padding:13px; font-family:"Syne",sans-serif; font-size:13px; font-weight:700; color:var(--red); cursor:pointer; transition:all .15s; display:flex; align-items:center; justify-content:center; gap:8px; }
+.quiet-exit-btn:hover { background:var(--red-light); }
+.quiet-exit-btn.activated { background:var(--red); color:white; border-color:var(--red); }
+
+/* RACE HISTORY */
+.history-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:0.5px solid var(--border); }
+.history-row:last-child { border-bottom:none; }
+.place-circle { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:"Syne",sans-serif; font-size:12px; font-weight:700; flex-shrink:0; }
+</style>
+</head>
+<body>
+<div id="dev-nav"></div>
+
+<div class="shell" id="shell">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <span class="status-icons">●●● WiFi █▉</span>
+  </div>
+
+  <!-- ── MAIN PROFILE VIEW ── -->
+  <div class="view active" id="view-profile">
+
+    <div id="profile-header-wrap"></div>
+
+    <div class="view-body" style="padding-top:0;">
+
+      <div class="stat-grid fu fu2" id="stat-grid"></div>
+
+      <div class="section-label fu fu3">Stage progress</div>
+      <div class="card fu fu3" style="padding:10px 13px;margin-bottom:12px;" id="stage-progress"></div>
+
+      <div class="section-label fu fu4">Race history</div>
+      <div class="card fu fu4" style="padding:0 13px;margin-bottom:12px;" id="race-history"></div>
+
+      <div class="section-label fu fu5">Privacy &amp; safety</div>
+      <div class="card fu fu5" style="padding:0 13px;margin-bottom:12px;" id="privacy-toggles"></div>
+
+      <div class="fu fu5" style="margin-bottom:8px;">
+        <button class="quiet-exit-btn" id="quiet-exit-btn" onclick="triggerQuietExit()">
+          <span>🔇</span> Quiet exit — pause all sharing
+        </button>
+      </div>
+
+      <div class="fu fu6">
+        <button class="btn-red" onclick="showView('view-team')">Team settings →</button>
+        <button class="btn-ghost" onclick="showView('view-team')">Edit Scoopers</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── TEAM SETTINGS VIEW ── -->
+  <div class="view" id="view-team">
+    <div style="padding:6px 16px 0;flex-shrink:0;">
+      <button class="back-btn" onclick="showView('view-profile')">←</button>
+      <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:2px;">Team settings</div>
+      <div style="font-size:13px;color:var(--muted);">Editable any time — changes take effect immediately.</div>
+    </div>
+    <div class="view-body">
+
+      <label class="field-label">Team name</label>
+      <input class="field-input" type="text" id="team-name-input" oninput="checkName(this.value)">
+      <div class="name-check">
+        <div class="check-dot" id="name-dot" style="background:var(--green)"></div>
+        <span id="name-msg" style="color:var(--green);">Available</span>
+      </div>
+
+      <label class="field-label">Mode</label>
+      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px;">
+        <div class="toggle-row" style="padding:9px 13px;background:var(--card);border-radius:var(--r-sm);border:1.5px solid var(--border);" id="mode-solo" onclick="selectMode('solo')">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:16px;">🏃</span>
+            <div><div class="toggle-label">Solo</div><div class="toggle-sub">Just you</div></div>
+          </div>
+          <div class="toggle" id="mode-solo-radio"></div>
+        </div>
+        <div class="toggle-row" style="padding:9px 13px;background:var(--card);border-radius:var(--r-sm);border:1.5px solid var(--border);" id="mode-family" onclick="selectMode('family')">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:16px;">👨‍👩‍👧</span>
+            <div><div class="toggle-label">Family mode</div><div class="toggle-sub">Bring your Scoopers</div></div>
+          </div>
+          <div class="toggle" id="mode-family-radio"></div>
+        </div>
+      </div>
+
+      <label class="field-label">Scoopers</label>
+      <div class="card" style="padding:0 13px;margin-bottom:8px;" id="scoopers-list-edit"></div>
+      <button class="btn-ghost" style="margin-top:0;" onclick="addScooper()">+ Add a Scooper</button>
+
+      <div style="background:var(--red-light);border:0.5px solid var(--red-mid);border-radius:var(--r-sm);padding:10px 13px;font-size:11px;color:var(--red-dark);line-height:1.55;margin-top:10px;">
+        <strong>Privacy:</strong> Only your team name is ever visible to other players. Real names, email, and visit data stay private always.
+      </div>
+
+      <div style="margin-top:14px;">
+        <button class="btn-red" onclick="saveTeam()">Save changes</button>
+      </div>
+
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a class="nav-item" href="map.html"><span class="nav-icon">🗺</span><span class="nav-label">Map</span></a>
+    <a class="nav-item" href="home.html"><span class="nav-icon">⌂</span><span class="nav-label">Home</span></a>
+    <a class="nav-item nav-scan" href="scan.html"><span class="nav-icon" style="display:flex;align-items:center;justify-content:center;">⊞</span><span class="nav-label">Scan</span></a>
+    <a class="nav-item" href="races.html"><span class="nav-icon">⚑</span><span class="nav-label">Races</span></a>
+    <a class="nav-item" href="badges.html"><span class="nav-icon">◈</span><span class="nav-label">Badges</span></a>
+  </nav>
 </div>
+
+<script src="../assets/js/state.js"></script>
+<script>
+var quietActive = false;
+var privacyToggles = { pace: true, milestones: true };
+var currentMode = 'solo';
+
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function render() {
+  var p = CCR.p;
+
+  // Header
+  document.getElementById('profile-header-wrap').innerHTML = `
+    <div class="profile-header">
+      <div class="profile-avatar-lg" style="background:${p.avatarBg};color:${p.avatarTc};border-color:${p.avatarBg === '#FCEBEB' ? 'var(--red-mid)' : p.avatarBg};">${p.initials}</div>
+      <div class="profile-name">${p.firstName}</div>
+      <div class="profile-team">${p.teamName || 'No team name set'}</div>
+      <div class="profile-pills">
+        ${p.streak > 0 ? `<span class="pill pill-red">🔥 ${p.streak} day streak</span>` : '<span class="pill" style="background:var(--surface);color:var(--muted);border:0.5px solid var(--border);">No streak yet</span>'}
+        ${p.homeBase ? `<span class="pill pill-amber">🏠 ${p.homeBase.split(',')[0]}</span>` : '<span class="pill" style="background:var(--surface);color:var(--muted);border:0.5px solid var(--border);">No home base</span>'}
+        ${p.mode === 'family' ? `<span class="pill pill-green">👨‍👩‍👧 Family · ${p.scoopers.length} Scoopers</span>` : ''}
+      </div>
+    </div>`;
+
+  // Stats
+  document.getElementById('stat-grid').innerHTML = [
+    { label:'Check-ins', val: p.checkins, red:false },
+    { label:'Scoops',    val: p.scoops.toLocaleString(), red:true },
+    { label:'Badges',    val: p.badges,   red:false },
+    { label:'Rank',      val: p.rank ? '#'+p.rank : '—', red:false },
+  ].map(s=>`<div class="stat-card">
+    <div class="stat-card-label">${s.label}</div>
+    <div class="stat-card-val${s.red?' red':''}">${s.val}</div>
+  </div>`).join('');
+
+  // Stage progress
+  document.getElementById('stage-progress').innerHTML = [
+    { label: p.county||'Home run', cur:p.countyProgress, total:p.countyTotal },
+    { label:'New York', cur:p.stateProgress, total:p.stateTotal },
+    { label:'Full network', cur:p.networkProgress, total:p.networkTotal },
+  ].map((s,i)=>`
+    <div style="margin-bottom:${i<2?'12px':'0'};">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-size:11px;font-weight:500;color:var(--text);">${s.label}</span>
+        <span style="font-size:11px;color:var(--red);font-family:'DM Mono',monospace;">${s.cur}/${s.total}</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" style="width:${s.total?Math.round(s.cur/s.total*100):0}%"></div></div>
+    </div>`).join('');
+
+  // Race history
+  var history = p.activeRace
+    ? [{ name:p.activeRace.name, sub:'In progress · ' + p.activeRace.racers.length + ' racers', place:p.activeRace.place, status:'live' }]
+    : [];
+  if (p.checkins > 0) history.push({ name:'First solo run', sub:'Completed · ' + p.checkins + ' check-ins', place:1, status:'done' });
+
+  document.getElementById('race-history').innerHTML = history.length
+    ? history.map(h=>{
+        var placeBg = h.place===1?'var(--amber-light)':h.place===2?'var(--surface)':'var(--surface)';
+        var placeTc = h.place===1?'#633806':h.place===2?'var(--muted)':'var(--muted)';
+        var placeLabel = h.place===1?'1st':h.place===2?'2nd':h.place+'th';
+        return `<div class="history-row">
+          <div class="place-circle" style="background:${placeBg};color:${placeTc};">${placeLabel}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:500;color:var(--text);">${h.name}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:1px;">${h.sub}</div>
+          </div>
+          ${h.status==='live'?'<span class="pill pill-green">Live</span>':'<span class="pill" style="background:var(--amber-light);color:#633806;border:0.5px solid #EF9F27;">Won</span>'}
+        </div>`;
+      }).join('')
+    : '<div style="padding:14px 0;text-align:center;font-size:12px;color:var(--muted);">No races yet — start a sprint!</div>';
+
+  // Privacy toggles
+  document.getElementById('privacy-toggles').innerHTML = [
+    { key:'pace', label:'Share pace stats in sprints', sub:'Visits/day — no locations or times' },
+    { key:'milestones', label:'Share milestone moments', sub:'County complete, badges earned' },
+  ].map(t=>`<div class="toggle-row">
+    <div>
+      <div class="toggle-label">${t.label}</div>
+      <div class="toggle-sub">${t.sub}</div>
+    </div>
+    <div class="toggle ${privacyToggles[t.key]?'on':'off'}" onclick="flipToggle('${t.key}')"></div>
+  </div>`).join('');
+
+  // Quiet exit state
+  var qe = document.getElementById('quiet-exit-btn');
+  if (qe) qe.className = 'quiet-exit-btn' + (quietActive?' activated':'');
+  if (qe) qe.innerHTML = quietActive
+    ? '<span>✓</span> Data sharing paused'
+    : '<span>🔇</span> Quiet exit — pause all sharing';
+
+  // Team settings
+  var inp = document.getElementById('team-name-input');
+  if (inp) inp.value = p.teamName || '';
+  currentMode = p.mode;
+  updateModeUI();
+  renderScoopers();
+}
+
+function flipToggle(key) {
+  privacyToggles[key] = !privacyToggles[key];
+  render();
+}
+
+function triggerQuietExit() {
+  quietActive = !quietActive;
+  render();
+  if (quietActive) {
+    setTimeout(() => {
+      var qe = document.getElementById('quiet-exit-btn');
+      if (qe) qe.innerHTML = '<span>🔇</span> Tap again to resume sharing';
+    }, 1500);
+  }
+}
+
+function checkName(val) {
+  var dot = document.getElementById('name-dot');
+  var msg = document.getElementById('name-msg');
+  var taken = ['troy squad','team deb','glens falls forever','troy road warriors'].includes(val.toLowerCase().trim());
+  if (val.length < 3) { dot.style.background='var(--border)'; msg.textContent='Keep typing...'; msg.style.color='var(--muted)'; return; }
+  if (taken) { dot.style.background='var(--red)'; msg.textContent='Name taken — try another'; msg.style.color='var(--red)'; }
+  else { dot.style.background='var(--green)'; msg.textContent='"'+val+'" is available'; msg.style.color='var(--green)'; }
+}
+
+function selectMode(mode) {
+  currentMode = mode;
+  updateModeUI();
+}
+
+function updateModeUI() {
+  var sr = document.getElementById('mode-solo-radio');
+  var fr = document.getElementById('mode-family-radio');
+  var sm = document.getElementById('mode-solo');
+  var fm = document.getElementById('mode-family');
+  if (!sr) return;
+  sr.className = 'toggle ' + (currentMode==='solo'?'on':'off');
+  fr.className = 'toggle ' + (currentMode==='family'?'on':'off');
+  sm.style.borderColor = currentMode==='solo'?'var(--red)':'var(--border)';
+  fm.style.borderColor = currentMode==='family'?'var(--red)':'var(--border)';
+}
+
+function renderScoopers() {
+  var p = CCR.p;
+  var list = document.getElementById('scoopers-list-edit');
+  if (!list) return;
+  var s = p.scoopers;
+  list.innerHTML = s.length ? s.map((sc,i)=>`
+    <div class="scooper-row">
+      <div class="avatar" style="background:${sc.color};color:${sc.tc};width:30px;height:30px;font-size:11px;">${sc.name.charAt(0)}</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:500;color:var(--text);">${sc.name}</div>
+        <span class="scooper-status" style="background:var(--amber-light);color:#633806;">Age ${sc.age} · fun only</span>
+      </div>
+      <button class="remove-btn" onclick="removeScooper(${i})">×</button>
+    </div>`).join('')
+    : '<div style="padding:12px 0;text-align:center;font-size:12px;color:var(--muted);">No Scoopers added yet</div>';
+}
+
+function removeScooper(i) {
+  CCR.p.scoopers.splice(i,1);
+  renderScoopers();
+}
+
+function addScooper() {
+  var name = prompt('Scooper name?');
+  if (!name) return;
+  var age = prompt('Scooper age?');
+  if (!age) return;
+  CCR.p.scoopers.push({ name, age: parseInt(age)||10, color:'var(--green-light)', tc:'#27500A' });
+  renderScoopers();
+}
+
+function saveTeam() {
+  var newName = document.getElementById('team-name-input').value.trim();
+  if (newName) CCR.p.teamName = newName;
+  CCR.p.mode = currentMode;
+  showView('view-profile');
+  render();
+}
+
+window.onPersonaSwitch = function() { quietActive=false; privacyToggles={pace:true,milestones:true}; showView('view-profile'); render(); };
+
+document.addEventListener('DOMContentLoaded', function() {
+  CCR.buildDevNav('profile');
+  CCR.startClock();
+  render();
+});
+</script>
+</body>
+</html>
