@@ -1,7 +1,334 @@
-<!-- ConeCoreRun — Map screen
-     Status: placeholder
-     See pitch/index.html for the current mockup of this screen
--->
-<div id="screen-map" class="screen" data-screen="map">
-  <!-- Map screen content -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ConeCoreRun — Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/main.css">
+<style>
+.filter-tabs { display:flex; gap:6px; overflow-x:auto; padding:8px 16px 4px; scrollbar-width:none; flex-shrink:0; }
+.filter-tabs::-webkit-scrollbar { display:none; }
+.filter-tab { flex-shrink:0; padding:5px 13px; border-radius:var(--r-full); font-size:11px; font-weight:500; cursor:pointer; border:0.5px solid var(--border); background:var(--card); color:var(--muted); transition:all .15s; white-space:nowrap; }
+.filter-tab.active { background:var(--red); color:white; border-color:var(--red); }
+
+.map-wrap { flex:1; position:relative; background:#dce8f0; overflow:hidden; touch-action:none; min-height:280px; }
+#map-canvas { position:absolute; inset:0; width:100%; height:100%; }
+
+.map-legend { position:absolute; bottom:10px; left:10px; background:rgba(255,255,255,0.9); backdrop-filter:blur(6px); border-radius:var(--r-sm); padding:7px 10px; display:flex; gap:10px; pointer-events:none; }
+.legend-item { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--muted); }
+.legend-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+.store-tooltip { position:absolute; background:white; border:0.5px solid var(--border); border-radius:var(--r-sm); padding:8px 11px; pointer-events:none; z-index:20; display:none; min-width:160px; box-shadow:0 4px 16px rgba(0,0,0,0.12); }
+.tooltip-name { font-size:12px; font-weight:500; color:var(--text); }
+.tooltip-city { font-size:11px; color:var(--muted); margin-top:1px; }
+.tooltip-pills { display:flex; gap:4px; margin-top:6px; flex-wrap:wrap; }
+
+.nearby-section { flex-shrink:0; background:var(--cream); border-top:0.5px solid var(--border); }
+.nearby-list { }
+.nearby-row { display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:0.5px solid var(--border); cursor:pointer; transition:background .12s; }
+.nearby-row:last-child { border-bottom:none; }
+.nearby-row:hover { background:var(--surface); }
+.nearby-dot-wrap { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
+.nearby-info { flex:1; min-width:0; }
+.nearby-name-row { font-size:12px; font-weight:500; color:var(--text); display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+.nearby-sub-row { font-size:11px; color:var(--muted); margin-top:1px; }
+
+.progress-strip { padding:10px 16px; display:grid; grid-template-columns:1fr 1fr; gap:8px; flex-shrink:0; }
+.strip-card { background:var(--card); border:0.5px solid var(--border); border-radius:var(--r-sm); padding:9px 11px; }
+.strip-label { font-size:10px; color:var(--muted); margin-bottom:3px; }
+.strip-val { font-family:"Syne",sans-serif; font-size:15px; font-weight:800; color:var(--text); margin-bottom:5px; }
+</style>
+</head>
+<body>
+<div id="dev-nav"></div>
+
+<div class="shell" id="shell" style="max-height:100vh;overflow:hidden;">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <span class="status-icons">●●● WiFi █▉</span>
+  </div>
+
+  <div style="padding:6px 16px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+    <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Map</div>
+    <span class="pill pill-red" id="map-visited-badge">67 visited</span>
+  </div>
+
+  <div class="filter-tabs">
+    <div class="filter-tab active" onclick="setFilter('all',this)">All</div>
+    <div class="filter-tab" onclick="setFilter('unvisited',this)">Unvisited</div>
+    <div class="filter-tab" onclick="setFilter('visited',this)">Visited</div>
+    <div class="filter-tab" onclick="setFilter('pioneer',this)">Pioneer</div>
+    <div class="filter-tab" onclick="setFilter('myrun',this)">My run</div>
+  </div>
+
+  <div class="map-wrap" id="map-wrap">
+    <canvas id="map-canvas"></canvas>
+    <div class="map-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#3B6D11"></div>Visited</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#CE2229"></div>Unvisited</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#BA7517"></div>Pioneer</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#185FA5"></div>Home base</div>
+    </div>
+    <div class="store-tooltip" id="tooltip">
+      <div class="tooltip-name" id="tt-name"></div>
+      <div class="tooltip-city" id="tt-city"></div>
+      <div class="tooltip-pills" id="tt-pills"></div>
+    </div>
+  </div>
+
+  <div class="progress-strip" id="progress-strip"></div>
+
+  <div class="nearby-section">
+    <div style="padding:8px 16px 4px;display:flex;justify-content:space-between;align-items:center;">
+      <span class="section-label" style="margin:0">Nearby</span>
+      <a href="scan.html" style="font-size:12px;color:var(--red);text-decoration:none;font-weight:500;">Scan →</a>
+    </div>
+    <div class="nearby-list" id="nearby-list"></div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a class="nav-item active" href="map.html"><span class="nav-icon">🗺</span><span class="nav-label">Map</span></a>
+    <a class="nav-item" href="home.html"><span class="nav-icon">⌂</span><span class="nav-label">Home</span></a>
+    <a class="nav-item nav-scan" href="scan.html"><span class="nav-icon" style="display:flex;align-items:center;justify-content:center;">⊞</span><span class="nav-label">Scan</span></a>
+    <a class="nav-item" href="races.html"><span class="nav-icon">⚑</span><span class="nav-label">Races</span></a>
+    <a class="nav-item" href="badges.html"><span class="nav-icon">◈</span><span class="nav-label">Badges</span></a>
+  </nav>
 </div>
+
+<script src="../assets/js/state.js"></script>
+<script>
+var canvas, ctx, W, H, activeFilter = 'all';
+
+// Extended store list for the map (screen-space positions set in initMap)
+var mapStores = [
+  {id:1,  name:'110 Hoosick St',    city:'Troy',           px:0,   py:0,   pioneer:false},
+  {id:2,  name:'127 Congress St',   city:'Troy',           px:0,   py:0,   pioneer:false},
+  {id:3,  name:'487 4th St',        city:'Troy',           px:0,   py:0,   pioneer:true},
+  {id:4,  name:'9 112th St',        city:'Troy',           px:0,   py:0,   pioneer:true},
+  {id:5,  name:'402 Bay Rd',        city:'Queensbury',     px:0,   py:0,   pioneer:false},
+  {id:6,  name:'347 Aviation Rd',   city:'Queensbury',     px:0,   py:0,   pioneer:false},
+  {id:7,  name:'360 Glen St',       city:'Glens Falls',    px:0,   py:0,   pioneer:false},
+  {id:8,  name:'250 Ridge St',      city:'Glens Falls',    px:0,   py:0,   pioneer:true},
+  {id:9,  name:'196 Warren St',     city:'Glens Falls',    px:0,   py:0,   pioneer:true},
+  {id:10, name:'402 Lake Ave',      city:'Saratoga Spgs',  px:0,   py:0,   pioneer:false},
+  {id:11, name:'521 Broadway',      city:'Saratoga Spgs',  px:0,   py:0,   pioneer:false},
+  {id:12, name:'1050 Western Ave',  city:'Albany',         px:0,   py:0,   pioneer:false},
+  {id:13, name:'204 Henry Johnson', city:'Albany',         px:0,   py:0,   pioneer:true},
+  {id:14, name:'777 Quaker Rd',     city:'Queensbury',     px:0,   py:0,   pioneer:true},
+  {id:15, name:'1229 Nott St',      city:'Schenectady',    px:0,   py:0,   pioneer:false},
+  {id:16, name:'2634 Genesee St',   city:'Utica',          px:0,   py:0,   pioneer:true},
+  {id:17, name:'292 Cornelia St',   city:'Plattsburgh',    px:0,   py:0,   pioneer:false},
+  {id:18, name:'2090 Saranac Ave',  city:'Lake Placid',    px:0,   py:0,   pioneer:true},
+  {id:19, name:'636 Main St',       city:'Bennington, VT', px:0,   py:0,   pioneer:false},
+  {id:20, name:'81 State St',       city:'Rutland, VT',    px:0,   py:0,   pioneer:false},
+];
+
+// Relative positions (% of canvas)
+var positions = [
+  [0.42,0.55],[0.40,0.60],[0.38,0.65],[0.46,0.52],[0.52,0.35],
+  [0.50,0.40],[0.54,0.32],[0.56,0.30],[0.58,0.28],[0.45,0.28],
+  [0.47,0.26],[0.32,0.62],[0.30,0.66],[0.55,0.38],[0.25,0.60],
+  [0.15,0.65],[0.62,0.08],[0.35,0.12],[0.68,0.72],[0.60,0.55],
+];
+
+function isVisited(store) {
+  return CCR.stores.find(s => s.id === store.id)?.visited_by?.includes(CCR.persona) || false;
+}
+
+function isHomeBase(store) {
+  var p = CCR.p;
+  return p.homeBase && store.name === p.homeBase.split(',')[0].trim();
+}
+
+function inMyRun(store) {
+  // Simulate: stores within a radius of persona's home base
+  var p = CCR.p;
+  var hbStore = mapStores.find(s => p.homeBase && s.name === p.homeBase.split(',')[0].trim());
+  if (!hbStore) return false;
+  var dx = store.px - hbStore.px, dy = store.py - hbStore.py;
+  return Math.sqrt(dx*dx+dy*dy) < 120;
+}
+
+function initMap() {
+  canvas = document.getElementById('map-canvas');
+  var wrap = document.getElementById('map-wrap');
+  function resize() {
+    W = wrap.clientWidth; H = wrap.clientHeight;
+    canvas.width = W; canvas.height = H;
+    mapStores.forEach((s,i) => {
+      s.px = positions[i][0] * W;
+      s.py = positions[i][1] * H;
+    });
+    draw();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  canvas.addEventListener('click', function(e) {
+    var rect = canvas.getBoundingClientRect();
+    var mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    var hit = null;
+    mapStores.forEach(s => {
+      if (shouldShow(s)) {
+        var dx=mx-s.px, dy=my-s.py;
+        if (Math.sqrt(dx*dx+dy*dy) < 12) hit = s;
+      }
+    });
+    var tt = document.getElementById('tooltip');
+    if (hit) {
+      document.getElementById('tt-name').textContent = hit.name;
+      document.getElementById('tt-city').textContent = hit.city + (isVisited(hit) ? ' · Visited ✓' : '');
+      var pills = [];
+      if (isHomeBase(hit)) pills.push('<span class="pill pill-blue">🏠 Home base</span>');
+      if (hit.pioneer) pills.push('<span class="pill pill-amber">Pioneer +50</span>');
+      if (!isVisited(hit)) pills.push('<a href="scan.html" class="pill pill-red" style="text-decoration:none;">Check in →</a>');
+      document.getElementById('tt-pills').innerHTML = pills.join('');
+      tt.style.display = 'block';
+      var tx = Math.min(hit.px + 10, W - 180);
+      var ty = Math.max(hit.py - 80, 8);
+      tt.style.left = tx + 'px'; tt.style.top = ty + 'px';
+    } else {
+      tt.style.display = 'none';
+    }
+  });
+}
+
+function shouldShow(s) {
+  if (activeFilter === 'visited')   return isVisited(s);
+  if (activeFilter === 'unvisited') return !isVisited(s);
+  if (activeFilter === 'pioneer')   return s.pioneer;
+  if (activeFilter === 'myrun')     return inMyRun(s);
+  return true;
+}
+
+function draw() {
+  if (!ctx) ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  drawBase();
+
+  // My run circle
+  var p = CCR.p;
+  var hbStore = mapStores.find(s => p.homeBase && s.name === p.homeBase.split(',')[0].trim());
+  if (hbStore && (activeFilter === 'myrun' || activeFilter === 'all')) {
+    ctx.beginPath();
+    ctx.arc(hbStore.px, hbStore.py, 120, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(206,34,41,0.05)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(206,34,41,0.3)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5,4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  mapStores.forEach(s => {
+    var show = shouldShow(s);
+    var visited = isVisited(s);
+    var hb = isHomeBase(s);
+    var r = hb ? 9 : (visited ? 7 : 5);
+
+    if (!show) {
+      ctx.beginPath();
+      ctx.arc(s.px, s.py, 3, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(180,178,169,0.35)';
+      ctx.fill();
+      return;
+    }
+
+    // Glow
+    ctx.beginPath();
+    ctx.arc(s.px, s.py, r+5, 0, Math.PI*2);
+    ctx.fillStyle = hb ? 'rgba(24,95,165,0.15)' : visited ? 'rgba(59,109,17,0.12)' : s.pioneer ? 'rgba(186,117,23,0.15)' : 'rgba(206,34,41,0.1)';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(s.px, s.py, r, 0, Math.PI*2);
+    ctx.fillStyle = hb ? '#185FA5' : visited ? '#3B6D11' : s.pioneer ? '#BA7517' : '#CE2229';
+    ctx.fill();
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    if (hb) {
+      ctx.font = 'bold 9px sans-serif';
+      ctx.fillStyle = 'white';
+      ctx.textAlign = 'center';
+      ctx.fillText('H', s.px, s.py+3.5);
+    }
+  });
+}
+
+function drawBase() {
+  ctx.fillStyle = '#f0ece4'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 3;
+  [[0,H*.45,W,H*.45],[0,H*.65,W,H*.65],[W*.3,0,W*.3,H],[W*.55,0,W*.55,H],[W*.7,0,W*.7,H]].forEach(([x1,y1,x2,y2])=>{
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  });
+  ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=1.5;
+  [[0,H*.25,W*.7,H*.25],[W*.15,0,W*.15,H*.8]].forEach(([x1,y1,x2,y2])=>{
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  });
+  ctx.fillStyle='rgba(180,210,230,0.3)';
+  ctx.beginPath();ctx.moveTo(W*.55,0);ctx.bezierCurveTo(W*.6,H*.3,W*.52,H*.6,W*.57,H);
+  ctx.lineTo(W*.63,H);ctx.bezierCurveTo(W*.63,H*.6,W*.68,H*.3,W*.65,0);ctx.closePath();ctx.fill();
+}
+
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tooltip').style.display = 'none';
+  draw();
+}
+
+function renderUI() {
+  var p = CCR.p;
+  document.getElementById('map-visited-badge').textContent = p.checkins + ' visited';
+
+  // Progress strip
+  document.getElementById('progress-strip').innerHTML = `
+    <div class="strip-card">
+      <div class="strip-label">${p.county || 'Home county'}</div>
+      <div class="strip-val">${p.countyProgress}<span style="font-size:12px;color:var(--muted);font-weight:400"> / ${p.countyTotal}</span></div>
+      <div class="prog-track"><div class="prog-fill" style="width:${p.countyTotal?Math.round(p.countyProgress/p.countyTotal*100):0}%"></div></div>
+    </div>
+    <div class="strip-card">
+      <div class="strip-label">Full network</div>
+      <div class="strip-val">${p.networkProgress}<span style="font-size:12px;color:var(--muted);font-weight:400"> / ${p.networkTotal}</span></div>
+      <div class="prog-track"><div class="prog-fill" style="width:${Math.round(p.networkProgress/p.networkTotal*100)}%"></div></div>
+    </div>`;
+
+  // Nearby list
+  document.getElementById('nearby-list').innerHTML = p.nearbyLocations.map(loc => {
+    var dotBg = loc.status==='visited' ? 'var(--green-light)' : loc.bonuses.includes('pioneer') ? 'var(--amber-light)' : 'var(--red-light)';
+    var dotBorder = loc.status==='visited' ? '#97C459' : loc.bonuses.includes('pioneer') ? '#EF9F27' : 'var(--red-mid)';
+    var icon = loc.status==='visited' ? '✓' : '📍';
+    var pills = loc.bonuses.map(b =>
+      b==='pioneer' ? '<span class="pill pill-amber">Pioneer +50</span>' :
+      b==='loyal'   ? '<span class="pill pill-red">Loyal +25</span>' : ''
+    ).join('');
+    return `<div class="nearby-row" onclick="window.location='scan.html'">
+      <div class="nearby-dot-wrap" style="background:${dotBg};border:0.5px solid ${dotBorder}">${icon}</div>
+      <div class="nearby-info">
+        <div class="nearby-name-row">${loc.name}${pills}</div>
+        <div class="nearby-sub-row">${loc.dist} · ${loc.status==='visited'?'Checked in':loc.bonuses.length?'Bonus available':'Not visited'}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  draw();
+}
+
+window.onPersonaSwitch = renderUI;
+
+document.addEventListener('DOMContentLoaded', function() {
+  CCR.buildDevNav('map');
+  CCR.startClock();
+  initMap();
+  renderUI();
+});
+</script>
+</body>
+</html>

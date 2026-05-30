@@ -441,7 +441,7 @@ var PDF_B64="JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9
 var PDF_URL=null;
 function getPDFUrl(){if(!PDF_URL){var bin=atob(PDF_B64);var arr=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);var blob=new Blob([arr],{type:"application/pdf"});PDF_URL=URL.createObjectURL(blob);}return PDF_URL;}
 function downloadPDF(){var a=document.createElement("a");a.href=getPDFUrl();a.download="ConeCoreRun_GameConcept.pdf";a.click();}
-function checkPW(){var val=document.getElementById("pw-input").value.trim().toLowerCase();var err=document.getElementById("pw-error");if(val==="coker"){document.getElementById("gate").style.display="none";var c=document.getElementById("content");c.style.display="flex";c.style.flexDirection="column";setTimeout(function(){document.getElementById("pdf-frame").src=getPDFUrl();},600);}else{err.classList.add("show");document.getElementById("pw-input").value="";setTimeout(function(){err.classList.remove("show");},2500);}}
+function checkPW(){var val=document.getElementById("pw-input").value.trim().toLowerCase();var err=document.getElementById("pw-error");if(val==="conecore"||val==="conecorerun"||val==="stewarts"){document.getElementById("gate").style.display="none";var c=document.getElementById("content");c.style.display="flex";c.style.flexDirection="column";setTimeout(function(){document.getElementById("pdf-frame").src=getPDFUrl();},600);}else{err.classList.add("show");document.getElementById("pw-input").value="";setTimeout(function(){err.classList.remove("show");},2500);}}
 document.addEventListener("DOMContentLoaded",function(){document.getElementById("pw-input").focus();});
 </script>
 </body>

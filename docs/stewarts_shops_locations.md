@@ -803,12 +803,16 @@ If someone brought us a polished pilot proposal with a credible tech partner, a 
 
 ---
 
-## Game Concept — The Stewart's Race *(working title)*
+## Game Concept — ConeCoreRun *(beta name)*
 
 A real-world racing game inspired by the Cannonball Run, built around visiting every Stewart's Shops location. Ideally developed in partnership with Stewart's corporate, leveraging their community-oriented brand identity.
 
+---
+
 ### Core Concept
-Players race to visit every Stewart's Shops location across the full network. The first to complete each stage wins that heat. Designed to be fun, low-barrier, and deeply tied to the Stewart's community spirit.
+Players race to visit Stewart's Shops locations across a self-defined territory or the full network. The first to complete each stage wins that heat. Designed to be fun, low-barrier, and deeply tied to the Stewart's community spirit.
+
+---
 
 ### Check-In Mechanic
 - A **hidden QR code** is placed somewhere inside each store (not at the register, not obvious — players have to walk in and look around)
@@ -816,30 +820,115 @@ Players race to visit every Stewart's Shops location across the full network. Th
 - QR code placement **rotates periodically** (e.g. near the ice cream counter one week, by the coffee station the next), keeping it fresh and rewarding explorers
 - Stewart's staff are in on the secret, which fits their tight-knit employee culture
 
+---
+
+### Territory Definition — User-Drawn Runs *(key innovation)*
+
+Rather than being confined to administrative county or state boundaries, players **draw their own run** on a map during onboarding. A draggable circle (radius) centered on their location defines their starting territory — the stores inside that circle become their initial heat.
+
+**Why this matters:**
+- Smaller footprint = more completable = faster wins = better for casual players (Deb)
+- Larger footprint = prestige territory = bragging rights for serious players (Mike)
+- No two runs are identical — each player's game reflects their real geography and life
+- Players are naturally invested in their territory because they defined it themselves
+
+**How it works:**
+- During onboarding, the player sees a dot map of all nearby Stewart's locations
+- They drag a circle to define their run — stores inside the circle are their first heat
+- The circle shows a live count of included locations as it's dragged
+- Minimum: 3 locations. No maximum — players can circle the whole network if they want
+- After onboarding, the run is expandable but never shrinkable (you can't un-visit a store)
+
+---
+
+### Home Base — First Store Visited
+
+The **first QR code a player scans becomes their home base** — their personal flag in the game. This is the store they start from, the store they're most attached to, and the store that defines their identity on the map.
+
+**Home base mechanics:**
+- Home base is displayed prominently on the player's profile and map
+- Multiple players can share the same home base store — this is by design, not a problem
+- Shared home base stores create natural local rivalry without requiring explicit matchmaking
+- The home base is a social anchor: "I'm a 110 Hoosick Street player" is a real identity
+
+---
+
+### Capture the Flag *(emerging mechanic — in development)*
+
+Home base introduces a capture-the-flag layer that rewards territorial loyalty and drives repeat visits to specific stores.
+
+**Current thinking (not finalized):**
+- Your home base store is your flag
+- Other players checking into your home base store create competitive pressure
+- Defending your flag means checking in more frequently — driving real repeat foot traffic
+- A "contested" store could show a special indicator on the map
+- Potential siege mechanic: if a rival checks in at your home base N times without a response, they earn a territory bonus
+- This layer is opt-in — casual players (Deb) never need to engage with it
+
+**Stewart's business case for CTF:**
+- Incentivizes loyalty to individual locations, not just the brand generally
+- Drives repeat visits to specific stores — exactly what franchise operators want
+- Creates a reason to rush back to a particular Stewart's, not just any Stewart's
+
+> *Note: CTF mechanics require additional design work before implementation. The home base concept is confirmed; the competitive pressure layer is still being thought through.*
+
+---
+
 ### Stages / Heats
-1. **Heat 1 — County:** First player to check in at every Stewart's in their county
-2. **Heat 2 — State:** First player to complete all locations in New York or Vermont
-3. **Heat 3 — Full Network:** First player to visit every Stewart's location across the entire footprint
+1. **Heat 1 — Your run:** First to complete every store inside your drawn territory
+2. **Heat 2 — Region:** First to complete all locations in a broader area (county, state)
+3. **Heat 3 — Full Network:** First to visit every Stewart's location across NY, VT & NH
 
 ### Seasonal Races
-Timed events tied to local culture and the Stewart's calendar, for example:
+Timed events tied to local culture and the Stewart's calendar:
 - Complete all Saratoga Springs locations before track season ends
 - Complete all Adirondack locations during foliage season
 - Winter challenge: hit all Vermont locations during ski season
 
+---
+
+### Family Mode — Scoopers
+
+Players can add family members to their account as **Scoopers** — co-pilots who participate in the game experience without being registered contest entrants.
+
+**Key rules:**
+- Main account holder must be 18+ (legal contest requirement across NY, VT, NH)
+- Scoopers under 18 get full map access, check-in celebrations, and badges — but Scoops and prizes stay on the main account
+- Scoopers 18+ are encouraged to create their own accounts
+- Family teams are named (e.g. "The Troy Crew") — the team name is the only public identity
+- Scoopers can be added, edited, or removed at any time from Profile → Team Settings
+
+**Why this matters for Stewart's:**
+- Deb's Friday night ice cream run with her kids becomes a family scavenger hunt
+- Kids aged 8-17 are engaged and having fun without creating legal contest eligibility issues
+- Families as a unit become loyal to specific stores — the home base mechanic applies to the whole family
+
+---
+
 ### Social & Competitive Features
-- **Friend challenges:** Race your crew head-to-head
+- **Friend sprints:** Race your crew head-to-head with agreed stage and timeline
 - **Stranger matchmaking:** Get paired with other racers across the region
-- **Leaderboards:** Per county, per state, full network, and fastest-ever completion time
+- **Team names only:** Real names and emails never appear publicly — ever
+- **Leaderboards:** Per run, per region, full network, fastest-ever completion
 - **Player accounts:** Track personal progress, badges earned, and race history
-- **Badges:** Awarded for completing counties, states, seasonal events, and milestone check-ins
+- **Badges:** Awarded for completing runs, regions, seasonal events, and milestone check-ins
+
+---
+
+### Age & Legal Requirements
+- **Minimum age:** 18 across New York, Vermont, and New Hampshire
+- **Minimum registration data:** First name, last name, email, date of birth, state, agreement to official rules
+- **NY registration:** Any sweepstakes with prizes over $5,000 must be registered and bonded with the NY Department of State at least 30 days before launch
+- **No purchase necessary:** The QR scan requires no purchase — legally required across all three states
+- **Marketing to minors:** The game mechanic (scavenger hunt, badges) must not be marketed as targeting children — Family mode is positioned as a parental choice, not child-targeted advertising
+- *Legal counsel required before launch*
+
+---
 
 ### Business Case for Stewart's
 - Drives foot traffic to every location, including smaller and more rural stores
+- User-defined territories naturally surface underserved locations as "Pioneer" opportunities
+- Home base mechanic creates loyalty to individual stores, not just the brand
+- CTF mechanic incentivizes repeat visits to specific locations
 - No forced purchase — consistent with Stewart's generous, community-first values
-- Natural loyalty and engagement tool without feeling corporate or transactional
-- Staff involvement builds morale and store pride
-- Potential for Stewart's-branded prizes (free ice cream, gift cards, merchandise) for stage winners
-
-### Name
-*(TBD — brainstorming in progress)*
+- Staff involvement (knowing where the QR is hidden) builds morale and store pride

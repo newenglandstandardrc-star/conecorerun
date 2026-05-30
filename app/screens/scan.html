@@ -1,7 +1,268 @@
-<!-- ConeCoreRun — Scan screen
-     Status: placeholder
-     See pitch/index.html for the current mockup of this screen
--->
-<div id="screen-scan" class="screen" data-screen="scan">
-  <!-- Scan screen content -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ConeCoreRun — Scan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/main.css">
+<style>
+.scan-state { display:none; }
+.scan-state.active { display:flex; flex-direction:column; flex:1; }
+
+/* IDLE STATE */
+.scanner-box { background:#0a0a0a; margin:12px 16px 0; border-radius:16px; padding:24px 20px; display:flex; flex-direction:column; align-items:center; gap:14px; position:relative; overflow:hidden; }
+.scanner-box::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(255,255,255,0.01) 20px,rgba(255,255,255,0.01) 40px); pointer-events:none; }
+.qr-frame { width:170px; height:170px; border:2px solid var(--red); border-radius:12px; position:relative; display:flex; align-items:center; justify-content:center; }
+.qr-corner { position:absolute; width:22px; height:22px; border-color:white; border-style:solid; }
+.qr-corner.tl { top:-1px; left:-1px; border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
+.qr-corner.tr { top:-1px; right:-1px; border-width:3px 3px 0 0; border-radius:0 4px 0 0; }
+.qr-corner.bl { bottom:-1px; left:-1px; border-width:0 0 3px 3px; border-radius:0 0 0 4px; }
+.qr-corner.br { bottom:-1px; right:-1px; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
+.scan-line { position:absolute; width:150px; height:2px; background:linear-gradient(to right,transparent,var(--red),transparent); animation:scanMove 2s ease-in-out infinite; }
+@keyframes scanMove { 0%{top:12px;opacity:.5} 50%{top:152px;opacity:1} 100%{top:12px;opacity:.5} }
+.qr-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:3px; padding:12px; }
+.qr-cell { width:14px; height:14px; border-radius:2px; }
+
+.scan-hint { font-size:12px; color:#666; text-align:center; line-height:1.5; }
+.location-banner { margin:10px 16px 0; background:var(--red-light); border:0.5px solid var(--red-mid); border-radius:var(--r); padding:10px 13px; display:flex; align-items:center; gap:10px; }
+.location-banner-icon { width:28px; height:28px; background:var(--red); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+.location-banner-text { flex:1; min-width:0; }
+.location-banner-name { font-size:12px; font-weight:500; color:var(--red-dark); }
+.location-banner-sub { font-size:11px; color:var(--red); margin-top:1px; }
+
+/* SUCCESS STATE */
+.success-card { margin:16px 16px 0; background:var(--green-light); border:1px solid #97C459; border-radius:var(--r); padding:20px; display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; }
+.success-icon { width:56px; height:56px; background:var(--green); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px; color:white; }
+.success-title { font-family:"Syne",sans-serif; font-size:18px; font-weight:800; color:#1a4008; }
+.success-loc { font-size:13px; color:var(--green); }
+.scoops-earned { display:flex; align-items:center; gap:8px; background:white; border-radius:var(--r-sm); padding:10px 16px; margin-top:4px; }
+.scoops-earned-num { font-family:"Syne",sans-serif; font-size:28px; font-weight:800; color:var(--red); line-height:1; }
+.scoops-earned-label { font-size:12px; color:var(--muted); line-height:1.3; }
+
+/* BONUS ROW */
+.bonus-item { display:flex; align-items:center; gap:10px; background:var(--card); border:0.5px solid var(--border); border-radius:var(--r); padding:10px 13px; margin:0 16px 7px; cursor:pointer; transition:background .12s; }
+.bonus-item:hover { background:var(--surface); }
+.bonus-icon { width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.bonus-info { flex:1; }
+.bonus-name { font-size:12px; font-weight:500; color:var(--text); }
+.bonus-desc { font-size:11px; color:var(--muted); margin-top:1px; }
+.bonus-pts { font-family:"DM Mono",monospace; font-size:13px; font-weight:500; flex-shrink:0; }
+
+.dairy-confirm-btn { background:none; border:1px solid var(--border); border-radius:var(--r-sm); padding:5px 12px; font-size:11px; color:var(--muted); cursor:pointer; font-family:"DM Sans",sans-serif; transition:all .15s; flex-shrink:0; }
+.dairy-confirm-btn.confirmed { background:var(--green); color:white; border-color:var(--green); }
+
+/* HOME BASE BADGE */
+.homebase-badge { margin:0 16px 7px; background:var(--dark); border-radius:var(--r); padding:11px 13px; display:flex; align-items:center; gap:10px; }
+.homebase-badge-icon { font-size:20px; }
+.homebase-badge-text { flex:1; }
+.homebase-badge-title { font-family:"Syne",sans-serif; font-size:13px; font-weight:700; color:white; }
+.homebase-badge-sub { font-size:11px; color:rgba(255,255,255,0.45); margin-top:1px; }
+</style>
+</head>
+<body>
+<div id="dev-nav"></div>
+
+<div class="shell" id="shell">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <span class="status-icons">●●● WiFi █▉</span>
+  </div>
+
+  <!-- IDLE STATE -->
+  <div class="scan-state active" id="state-idle">
+    <div style="padding:8px 20px 4px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Check in</div>
+      </div>
+      <span class="pill pill-green" id="location-pill">📍 Troy, NY</span>
+    </div>
+
+    <div class="scanner-box fu fu1">
+      <div class="scan-hint">Find the hidden QR code inside the store and scan it below</div>
+      <div class="qr-frame">
+        <div class="qr-corner tl"></div><div class="qr-corner tr"></div>
+        <div class="qr-corner bl"></div><div class="qr-corner br"></div>
+        <div class="scan-line"></div>
+        <div class="qr-grid" id="qr-grid"></div>
+      </div>
+      <div class="scan-hint">Point your camera at the QR code</div>
+    </div>
+
+    <div class="location-banner fu fu2">
+      <div class="location-banner-icon">📍</div>
+      <div class="location-banner-text">
+        <div class="location-banner-name" id="nearby-store-name">110 Hoosick St, Troy</div>
+        <div class="location-banner-sub">0.2 mi away · tap to check in</div>
+      </div>
+    </div>
+
+    <div style="padding:12px 16px 0;" class="fu fu2">
+      <button class="btn-red" onclick="triggerCheckin()" id="scan-btn">
+        Scan check-in code
+      </button>
+    </div>
+
+    <div style="padding:12px 16px 0;" class="fu fu3">
+      <div class="section-label">Bonuses available here</div>
+    </div>
+
+    <div id="bonus-list-idle"></div>
+  </div>
+
+  <!-- SUCCESS STATE -->
+  <div class="scan-state" id="state-success">
+    <div style="padding:8px 20px 4px;">
+      <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Check in</div>
+    </div>
+
+    <div class="success-card fu fu1" id="success-card">
+      <div class="success-icon">✓</div>
+      <div class="success-title" id="success-title">Checked in!</div>
+      <div class="success-loc" id="success-loc">110 Hoosick St, Troy</div>
+      <div class="scoops-earned">
+        <div class="scoops-earned-num" id="scoops-num">+10</div>
+        <div class="scoops-earned-label">Scoops<br>earned</div>
+      </div>
+    </div>
+
+    <div id="homebase-section"></div>
+
+    <div style="padding:12px 16px 0;" class="fu fu2">
+      <div class="section-label">Bonuses</div>
+    </div>
+    <div id="bonus-list-success"></div>
+
+    <div style="padding:8px 16px 0;" class="fu fu3">
+      <div class="section-label">This location</div>
+      <div class="card" id="location-card"></div>
+    </div>
+
+    <div style="padding:8px 16px 0;" class="fu fu4">
+      <button class="btn-red" onclick="goHome()">Back to home →</button>
+      <button class="btn-ghost" onclick="resetScan()">Scan another store</button>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a class="nav-item" href="map.html"><span class="nav-icon">🗺</span><span class="nav-label">Map</span></a>
+    <a class="nav-item" href="home.html"><span class="nav-icon">⌂</span><span class="nav-label">Home</span></a>
+    <button class="nav-item nav-scan active"><span class="nav-icon" style="display:flex;align-items:center;justify-content:center;">⊞</span><span class="nav-label">Scan</span></button>
+    <a class="nav-item" href="races.html"><span class="nav-icon">⚑</span><span class="nav-label">Races</span></a>
+    <a class="nav-item" href="badges.html"><span class="nav-icon">◈</span><span class="nav-label">Badges</span></a>
+  </nav>
 </div>
+
+<script src="../assets/js/state.js"></script>
+<script>
+// QR grid pattern
+var cells = [1,0,1,0,1,0,1,1,0,1,1,0,0,1,0,0,1,0,1,1,1,0,1,0,0];
+document.getElementById('qr-grid').innerHTML = cells.map(c =>
+  `<div class="qr-cell" style="background:${c?'#333':'transparent'}"></div>`
+).join('');
+
+function render() {
+  var p = CCR.p;
+  var nearby = p.nearbyLocations.find(l => l.status === 'unvisited') || p.nearbyLocations[0];
+
+  document.getElementById('location-pill').textContent = '📍 ' + (p.homeBase ? p.homeBase.split(',')[1]?.trim() || 'NY' : 'NY');
+  document.getElementById('nearby-store-name').textContent = nearby.name;
+  document.getElementById('scan-btn').textContent = p.checkins === 0
+    ? 'Scan your first store!' : 'Scan check-in code';
+
+  // Bonus list idle
+  var bonuses = getBonuses(nearby);
+  document.getElementById('bonus-list-idle').innerHTML = bonuses.map(b => bonusHTML(b)).join('');
+}
+
+function getBonuses(loc) {
+  var bonuses = [];
+  if (loc && loc.bonuses.includes('loyal'))   bonuses.push({type:'loyal',  icon:'🏆', bg:'var(--red-light)',   label:'Loyal bonus',   desc:'Competitor nearby — you chose Stewart\'s', pts:'+25', color:'var(--red)'});
+  if (loc && loc.bonuses.includes('pioneer')) bonuses.push({type:'pioneer',icon:'🌲', bg:'var(--amber-light)', label:'Pioneer bonus',  desc:'Low check-in location',                     pts:'+50', color:'var(--amber)'});
+  bonuses.push({type:'dairy', icon:'🥛', bg:'var(--blue-light)', label:'Dairy bonus', desc:'Did you grab milk, eggs or ice cream?', pts:'+15', color:'var(--blue)', confirm:true});
+  return bonuses;
+}
+
+function bonusHTML(b) {
+  var right = b.confirm
+    ? `<button class="dairy-confirm-btn" id="dairy-btn" onclick="confirmDairy(this)">Tap to confirm</button>`
+    : `<span class="bonus-pts" style="color:${b.color}">${b.pts}</span>`;
+  return `<div class="bonus-item">
+    <div class="bonus-icon" style="background:${b.bg}">${b.icon}</div>
+    <div class="bonus-info">
+      <div class="bonus-name">${b.label}</div>
+      <div class="bonus-desc">${b.desc}</div>
+    </div>
+    ${right}
+  </div>`;
+}
+
+function confirmDairy(btn) {
+  btn.textContent = '✓ Confirmed';
+  btn.classList.add('confirmed');
+}
+
+var totalScoops = 10;
+
+function triggerCheckin() {
+  var p = CCR.p;
+  var nearby = p.nearbyLocations.find(l => l.status === 'unvisited') || p.nearbyLocations[0];
+
+  // Calculate scoops
+  totalScoops = 10;
+  var bonuses = getBonuses(nearby);
+  bonuses.forEach(b => { if (!b.confirm) totalScoops += parseInt(b.pts); });
+
+  document.getElementById('success-loc').textContent = nearby.name;
+  document.getElementById('scoops-num').textContent = '+' + totalScoops;
+
+  // Home base section — show if first check-in
+  var hbSection = document.getElementById('homebase-section');
+  if (p.checkins === 0) {
+    hbSection.innerHTML = `<div class="homebase-badge fu fu1">
+      <span class="homebase-badge-icon">🏠</span>
+      <div class="homebase-badge-text">
+        <div class="homebase-badge-title">Home base set!</div>
+        <div class="homebase-badge-sub">${nearby.name} is now your flag on the map</div>
+      </div>
+    </div>`;
+  } else {
+    hbSection.innerHTML = '';
+  }
+
+  // Bonus list success
+  document.getElementById('bonus-list-success').innerHTML = bonuses.map(b => bonusHTML(b)).join('');
+
+  // Location card
+  document.getElementById('location-card').innerHTML = `
+    <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:4px;">${nearby.name}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Check-ins by all players: ${Math.floor(Math.random()*200+50)}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <span class="pill pill-blue">Open 24/7</span>
+      <span class="pill pill-green">Gas available</span>
+      ${nearby.bonuses.includes('pioneer') ? '<span class="pill pill-amber">Pioneer location</span>' : ''}
+    </div>`;
+
+  // Switch states
+  document.getElementById('state-idle').classList.remove('active');
+  document.getElementById('state-success').classList.add('active');
+}
+
+function resetScan() {
+  document.getElementById('state-success').classList.remove('active');
+  document.getElementById('state-idle').classList.add('active');
+}
+
+function goHome() { window.location.href = 'home.html'; }
+
+window.onPersonaSwitch = function() { render(); resetScan(); };
+
+document.addEventListener('DOMContentLoaded', function() {
+  CCR.buildDevNav('scan');
+  CCR.startClock();
+  render();
+});
+</script>
+</body>
+</html>

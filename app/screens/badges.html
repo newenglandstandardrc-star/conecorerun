@@ -1,7 +1,211 @@
-<!-- ConeCoreRun — Badges screen
-     Status: placeholder
-     See pitch/index.html for the current mockup of this screen
--->
-<div id="screen-badges" class="screen" data-screen="badges">
-  <!-- Badges screen content -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ConeCoreRun — Badges</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/main.css">
+<style>
+.scoops-hero { background:var(--red); border-radius:var(--r); padding:16px; margin:10px 16px 0; display:flex; justify-content:space-between; align-items:center; overflow:hidden; position:relative; }
+.scoops-hero::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(255,255,255,0.03) 10px,rgba(255,255,255,0.03) 20px); }
+.scoops-num { font-family:"Syne",sans-serif; font-size:36px; font-weight:800; color:white; line-height:1; }
+.scoops-label { font-size:11px; color:rgba(255,255,255,0.65); margin-top:3px; }
+.scoops-icon { font-size:44px; opacity:.2; color:white; }
+
+.redeem-row { display:flex; align-items:center; padding:10px 14px; border-bottom:0.5px solid var(--border); }
+.redeem-row:last-child { border-bottom:none; }
+.redeem-info { flex:1; }
+.redeem-name { font-size:12px; font-weight:500; color:var(--text); }
+.redeem-cost { font-size:11px; color:var(--muted); margin-top:1px; }
+.redeem-btn { background:var(--red); color:white; border:none; border-radius:var(--r-sm); padding:6px 14px; font-size:11px; font-weight:600; cursor:pointer; font-family:"DM Sans",sans-serif; transition:background .15s; flex-shrink:0; }
+.redeem-btn:hover { background:#b01e24; }
+.redeem-btn.disabled { background:var(--surface); color:var(--muted); cursor:not-allowed; }
+.redeem-btn.redeemed { background:var(--green); }
+
+.badge-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.badge-card { background:var(--card); border:0.5px solid var(--border); border-radius:var(--r); padding:13px; display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; cursor:pointer; transition:border-color .15s, transform .15s; }
+.badge-card:hover { border-color:rgba(206,34,41,0.25); transform:translateY(-1px); }
+.badge-card.locked { opacity:.35; cursor:default; }
+.badge-card.locked:hover { transform:none; border-color:var(--border); }
+.badge-icon-wrap { width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; }
+.badge-name { font-size:11px; font-weight:600; color:var(--text); }
+.badge-desc { font-size:10px; color:var(--muted); }
+
+.wellspring-card { background:var(--red-light); border:0.5px solid var(--red-mid); border-radius:var(--r); padding:13px 15px; margin:0 16px; cursor:pointer; transition:background .12s; }
+.wellspring-card:hover { background:#fce0e0; }
+.wellspring-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
+.wellspring-title { font-size:13px; font-weight:600; color:var(--red-dark); }
+.wellspring-tag { font-size:9px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--red); background:rgba(206,34,41,0.1); padding:2px 8px; border-radius:var(--r-full); }
+.wellspring-body { font-size:11px; color:var(--red); line-height:1.55; }
+.wellspring-hotline { font-size:11px; font-weight:600; color:var(--red-dark); margin-top:5px; }
+
+/* REDEEM MODAL */
+.modal-backdrop { position:fixed; inset:0; background:rgba(15,13,11,0.5); z-index:400; display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; }
+.modal-backdrop.open { opacity:1; pointer-events:all; }
+.modal-sheet { width:390px; background:var(--cream); border-radius:24px 24px 0 0; padding:20px 20px 40px; transform:translateY(100%); transition:transform .28s cubic-bezier(.34,1.1,.64,1); }
+.modal-backdrop.open .modal-sheet { transform:translateY(0); }
+.modal-handle { width:40px; height:4px; background:var(--border); border-radius:2px; margin:0 auto 16px; }
+@media (max-width:420px) { .modal-sheet { width:100%; } }
+</style>
+</head>
+<body>
+<div id="dev-nav"></div>
+
+<div class="shell" id="shell">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <span class="status-icons">●●● WiFi █▉</span>
+  </div>
+
+  <div style="padding:6px 16px 4px;flex-shrink:0;">
+    <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Badges &amp; Scoops</div>
+  </div>
+
+  <div class="scroll-body" style="padding-top:0;">
+
+    <!-- Scoops balance -->
+    <div class="scoops-hero fu fu1" id="scoops-hero">
+      <div>
+        <div class="scoops-label">Your Scoops balance</div>
+        <div class="scoops-num" id="scoops-balance">1,240</div>
+      </div>
+      <div class="scoops-icon">🍦</div>
+    </div>
+
+    <!-- Redeem -->
+    <div style="margin:12px 0 8px;padding:0 16px;">
+      <div class="section-label">Redeem Scoops</div>
+    </div>
+    <div class="card fu fu2" style="padding:0;" id="redeem-list"></div>
+
+    <!-- Earned badges -->
+    <div style="margin:12px 0 8px;padding:0 16px;">
+      <div class="section-label">Earned badges</div>
+    </div>
+    <div style="padding:0 16px;" class="fu fu3">
+      <div class="badge-grid" id="earned-badges"></div>
+    </div>
+
+    <!-- Locked badges -->
+    <div style="margin:12px 0 8px;padding:0 16px;">
+      <div class="section-label">Locked badges</div>
+    </div>
+    <div style="padding:0 16px;margin-bottom:14px;" class="fu fu4">
+      <div class="badge-grid" id="locked-badges"></div>
+    </div>
+
+    <!-- Wellspring -->
+    <div class="wellspring-card fu fu5">
+      <div class="wellspring-header">
+        <span class="wellspring-title">Wellspring</span>
+        <span class="wellspring-tag">Community partner</span>
+      </div>
+      <div class="wellspring-body">Saratoga County domestic violence &amp; sexual assault services. A long-time Stewart's Shops charitable partner.</div>
+      <div class="wellspring-hotline">24-hour hotline: 518-584-8188</div>
+    </div>
+    <div style="height:8px;"></div>
+
+  </div>
+
+  <nav class="bottom-nav">
+    <a class="nav-item" href="map.html"><span class="nav-icon">🗺</span><span class="nav-label">Map</span></a>
+    <a class="nav-item" href="home.html"><span class="nav-icon">⌂</span><span class="nav-label">Home</span></a>
+    <a class="nav-item nav-scan" href="scan.html"><span class="nav-icon" style="display:flex;align-items:center;justify-content:center;">⊞</span><span class="nav-label">Scan</span></a>
+    <a class="nav-item" href="races.html"><span class="nav-icon">⚑</span><span class="nav-label">Races</span></a>
+    <button class="nav-item active"><span class="nav-icon">◈</span><span class="nav-label">Badges</span></button>
+  </nav>
 </div>
+
+<!-- Redeem modal -->
+<div class="modal-backdrop" id="redeem-modal" onclick="closeModalOutside(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);margin-bottom:6px;" id="modal-title">Redeem Scoops</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px;" id="modal-sub">Show this code at any Stewart's register.</div>
+    <div style="background:var(--dark);border-radius:var(--r);padding:20px;text-align:center;margin-bottom:16px;">
+      <div style="font-family:'DM Mono',monospace;font-size:28px;font-weight:500;color:white;letter-spacing:4px;" id="redeem-code">CCR-4829</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:6px;">Valid for 24 hours · Single use</div>
+    </div>
+    <div style="background:var(--amber-light);border:0.5px solid #EF9F27;border-radius:var(--r-sm);padding:10px 13px;font-size:11px;color:#633806;line-height:1.55;margin-bottom:16px;">
+      Show this code to the cashier at any Stewart's Shops register. No purchase necessary for redemption.
+    </div>
+    <button class="btn-red" onclick="closeModal()">Done</button>
+  </div>
+</div>
+
+<script src="../assets/js/state.js"></script>
+<script>
+var redeemed = {};
+
+function render() {
+  var p = CCR.p;
+
+  document.getElementById('scoops-balance').textContent = p.scoops.toLocaleString();
+
+  // Redeem list
+  document.getElementById('redeem-list').innerHTML = CCR.redemptions.map((r,i) => {
+    var canAfford = p.scoops >= r.cost;
+    var isDone = redeemed[i];
+    var btnClass = isDone ? 'redeemed' : canAfford ? '' : 'disabled';
+    var btnText = isDone ? '✓ Redeemed' : canAfford ? 'Redeem' : r.cost.toLocaleString() + ' needed';
+    return `<div class="redeem-row">
+      <div class="redeem-info">
+        <div class="redeem-name">${r.label}</div>
+        <div class="redeem-cost">${r.cost.toLocaleString()} Scoops</div>
+      </div>
+      <button class="redeem-btn ${btnClass}" onclick="redeemItem(${i},'${r.label}')" ${isDone||!canAfford?'disabled':''}>${btnText}</button>
+    </div>`;
+  }).join('');
+
+  // Earned badges
+  var earned = CCR.allBadges.filter(b => b.personas.includes(p.id));
+  document.getElementById('earned-badges').innerHTML = earned.length
+    ? earned.map(b => `<div class="badge-card" onclick="badgeTap('${b.label}')">
+        <div class="badge-icon-wrap" style="background:${b.color};border:0.5px solid ${b.border};">${b.icon}</div>
+        <div class="badge-name">${b.label}</div>
+        <div class="badge-desc">${b.desc}</div>
+      </div>`).join('')
+    : `<div style="grid-column:1/-1;text-align:center;padding:20px;font-size:12px;color:var(--muted);">No badges yet — check in to earn your first!</div>`;
+
+  // Locked badges
+  var locked = CCR.allBadges.filter(b => !b.personas.includes(p.id));
+  document.getElementById('locked-badges').innerHTML = locked.map(b => `
+    <div class="badge-card locked">
+      <div class="badge-icon-wrap" style="background:var(--surface);">🔒</div>
+      <div class="badge-name">${b.label}</div>
+      <div class="badge-desc">${b.desc}</div>
+    </div>`).join('');
+}
+
+function redeemItem(i, label) {
+  document.getElementById('modal-title').textContent = label;
+  document.getElementById('redeem-code').textContent = 'CCR-' + Math.floor(1000+Math.random()*9000);
+  document.getElementById('redeem-modal').classList.add('open');
+  redeemed[i] = true;
+  render();
+}
+
+function badgeTap(name) {
+  // Could show badge detail sheet — placeholder
+}
+
+function closeModal() {
+  document.getElementById('redeem-modal').classList.remove('open');
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('redeem-modal')) closeModal();
+}
+
+window.onPersonaSwitch = function() { redeemed = {}; render(); };
+
+document.addEventListener('DOMContentLoaded', function() {
+  CCR.buildDevNav('badges');
+  CCR.startClock();
+  render();
+});
+</script>
+</body>
+</html>

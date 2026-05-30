@@ -1,7 +1,305 @@
-<!-- ConeCoreRun — Races screen
-     Status: placeholder
-     See pitch/index.html for the current mockup of this screen
--->
-<div id="screen-races" class="screen" data-screen="races">
-  <!-- Races screen content -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ConeCoreRun — Races</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/main.css">
+<style>
+.view { display:none; flex-direction:column; flex:1; overflow:hidden; }
+.view.active { display:flex; }
+
+/* RACE CARD */
+.race-hero { background:var(--dark); margin:12px 16px 0; border-radius:var(--r); padding:16px; position:relative; overflow:hidden; }
+.race-hero::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(-45deg,transparent,transparent 20px,rgba(255,255,255,0.012) 20px,rgba(255,255,255,0.012) 40px); pointer-events:none; }
+.race-hero-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
+.race-hero-title { font-family:"Syne",sans-serif; font-size:15px; font-weight:700; color:white; }
+.race-hero-sub { font-size:11px; color:rgba(255,255,255,0.4); margin-top:2px; }
+.place-badge { background:rgba(59,109,17,0.25); border:0.5px solid rgba(97,196,37,0.35); border-radius:var(--r-sm); padding:3px 10px; font-size:11px; font-weight:500; color:#7fd44a; flex-shrink:0; }
+.place-badge.first { background:rgba(186,117,23,0.3); border-color:rgba(239,159,39,0.5); color:#FAC775; }
+
+.race-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.race-row:last-child { margin-bottom:0; }
+.racer-name { font-size:11px; font-weight:500; min-width:38px; }
+.racer-name.you { color:var(--red); }
+.race-bar-track { flex:1; height:5px; background:rgba(255,255,255,0.07); border-radius:3px; overflow:hidden; }
+.race-bar-fill { height:100%; border-radius:3px; transition:width .9s cubic-bezier(.34,1.2,.64,1); }
+.race-count { font-family:"DM Mono",monospace; font-size:11px; color:rgba(255,255,255,0.4); min-width:22px; text-align:right; }
+.race-count.you { color:white; }
+
+/* ACTIVITY FEED */
+.feed-row { display:flex; gap:10px; padding:10px 16px; border-bottom:0.5px solid var(--border); }
+.feed-row:last-child { border-bottom:none; }
+.feed-avatar { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; flex-shrink:0; margin-top:1px; }
+.feed-text { font-size:12px; color:var(--text); flex:1; line-height:1.5; }
+.feed-time { font-size:10px; color:var(--muted); margin-top:2px; }
+
+/* STAGES */
+.stage-row { display:flex; align-items:center; gap:10px; padding:11px 14px; border-bottom:0.5px solid var(--border); cursor:pointer; transition:background .12s; }
+.stage-row:last-child { border-bottom:none; }
+.stage-row:hover { background:var(--surface); }
+.stage-num { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; flex-shrink:0; }
+.stage-info { flex:1; }
+.stage-name { font-size:12px; font-weight:500; color:var(--text); }
+.stage-sub { font-size:11px; color:var(--muted); margin-top:1px; }
+
+/* EMPTY STATE */
+.empty-state { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 24px; gap:12px; text-align:center; flex:1; }
+.empty-icon { font-size:48px; }
+.empty-title { font-family:"Syne",sans-serif; font-size:18px; font-weight:800; color:var(--text); }
+.empty-sub { font-size:13px; color:var(--muted); line-height:1.6; max-width:260px; }
+
+/* CREATE SPRINT */
+.create-header { padding:8px 20px 0; flex-shrink:0; }
+.back-btn { background:none; border:none; font-size:22px; color:var(--muted); cursor:pointer; padding:0 0 4px; display:block; }
+.create-body { flex:1; overflow-y:auto; padding:8px 16px 100px; scrollbar-width:none; }
+.create-body::-webkit-scrollbar { display:none; }
+.opt-row { display:flex; align-items:center; gap:10px; background:var(--card); border:1.5px solid var(--border); border-radius:var(--r-sm); padding:11px 13px; margin-bottom:7px; cursor:pointer; transition:border-color .15s,background .15s; }
+.opt-row.selected { border-color:var(--red); background:var(--red-light); }
+.opt-icon { width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.opt-label { font-size:12px; font-weight:500; color:var(--text); }
+.opt-sub { font-size:11px; color:var(--muted); margin-top:1px; }
+.opt-radio { width:16px; height:16px; border-radius:50%; border:1.5px solid var(--border); background:white; margin-left:auto; flex-shrink:0; transition:all .15s; }
+.opt-row.selected .opt-radio { border-color:var(--red); background:var(--red); }
+.opt-row.selected .opt-radio::after { content:''; display:block; width:6px; height:6px; border-radius:50%; background:white; margin:3px; }
+.form-label { font-size:10px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin:12px 0 6px; }
+.privacy-note { background:var(--red-light); border:0.5px solid var(--red-mid); border-radius:var(--r-sm); padding:9px 12px; font-size:11px; color:var(--red-dark); line-height:1.55; margin-bottom:12px; }
+</style>
+</head>
+<body>
+<div id="dev-nav"></div>
+
+<div class="shell" id="shell">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <span class="status-icons">●●● WiFi █▉</span>
+  </div>
+
+  <!-- ── VIEW: ACTIVE RACE ── -->
+  <div class="view active" id="view-race">
+    <div style="padding:6px 16px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+      <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text);">Races</div>
+      <button onclick="showView('view-create')" style="background:var(--red);color:white;border:none;border-radius:var(--r-sm);padding:5px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;">+ New sprint</button>
+    </div>
+
+    <div class="scroll-body" style="padding-top:0;">
+
+      <div id="active-race-section"></div>
+
+      <div style="padding:12px 0 0;">
+        <div class="section-label">Stage progress</div>
+        <div class="card" style="padding:0;" id="stage-section"></div>
+      </div>
+
+      <div style="padding:12px 0 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span class="section-label" style="margin:0;">Recent activity</span>
+          <span style="font-size:11px;color:var(--muted);">Stats only — no locations</span>
+        </div>
+        <div class="card" style="padding:0;" id="activity-feed"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── VIEW: CREATE SPRINT ── -->
+  <div class="view" id="view-create">
+    <div class="create-header">
+      <button class="back-btn" onclick="showView('view-race')">←</button>
+      <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:4px;">New sprint</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:8px;">Set up a race with friends or strangers.</div>
+    </div>
+    <div class="create-body">
+
+      <div class="form-label">Stage</div>
+      <div class="opt-row selected" id="stage-county" onclick="selectOpt(this,'.stage-opt')">
+        <div class="opt-icon" style="background:var(--red-light);">🏘</div>
+        <div><div class="opt-label">My run</div><div class="opt-sub">Complete your drawn territory first</div></div>
+        <div class="opt-radio"></div>
+      </div>
+      <div class="opt-row stage-opt" onclick="selectOpt(this,'.stage-opt')">
+        <div class="opt-icon" style="background:var(--amber-light);">🗺</div>
+        <div><div class="opt-label">Region heat</div><div class="opt-sub">Complete a county or state</div></div>
+        <div class="opt-radio"></div>
+      </div>
+      <div class="opt-row stage-opt" onclick="selectOpt(this,'.stage-opt')">
+        <div class="opt-icon" style="background:var(--green-light);">🌐</div>
+        <div><div class="opt-label">Full network</div><div class="opt-sub">All 407 locations</div></div>
+        <div class="opt-radio"></div>
+      </div>
+
+      <div class="form-label">Timeline</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
+        <div class="opt-row selected tl-opt" onclick="selectOpt(this,'.tl-opt')" style="padding:9px 12px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text);">30 days</div>
+          <div class="opt-radio" style="margin-left:auto;"></div>
+        </div>
+        <div class="opt-row tl-opt" onclick="selectOpt(this,'.tl-opt')" style="padding:9px 12px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text);">60 days</div>
+          <div class="opt-radio" style="margin-left:auto;"></div>
+        </div>
+        <div class="opt-row tl-opt" onclick="selectOpt(this,'.tl-opt')" style="padding:9px 12px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text);">90 days</div>
+          <div class="opt-radio" style="margin-left:auto;"></div>
+        </div>
+        <div class="opt-row tl-opt" onclick="selectOpt(this,'.tl-opt')" style="padding:9px 12px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text);">Open ended</div>
+          <div class="opt-radio" style="margin-left:auto;"></div>
+        </div>
+      </div>
+
+      <div class="form-label">Racers</div>
+      <div class="card" style="padding:0;" id="racer-list">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:0.5px solid var(--border);">
+          <div class="avatar" id="create-avatar" style="background:var(--red-light);color:var(--red-dark);">MT</div>
+          <div style="flex:1;"><div style="font-size:12px;font-weight:500;color:var(--text);" id="create-name">Mike T.</div><div style="font-size:11px;color:var(--muted);">You (team: Troy Road Warriors)</div></div>
+          <span class="pill pill-green">Host</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:0.5px solid var(--border);">
+          <div class="avatar" style="background:#B5D4F4;color:#0C447C;">DM</div>
+          <div style="flex:1;"><div style="font-size:12px;font-weight:500;color:var(--text);">Dave M.</div></div>
+          <span class="pill pill-amber">Invited</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 13px;">
+          <div class="avatar" style="background:var(--surface);color:var(--muted);font-size:18px;">+</div>
+          <div style="font-size:12px;color:var(--muted);">Invite another friend</div>
+        </div>
+      </div>
+
+      <div class="form-label">Data sharing</div>
+      <div class="card" style="padding:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 13px;border-bottom:0.5px solid var(--border);">
+          <div><div style="font-size:12px;font-weight:500;">Score &amp; badges</div><div style="font-size:11px;color:var(--muted);">Always on — required</div></div>
+          <div style="width:36px;height:20px;border-radius:10px;background:var(--red);position:relative;"><div style="position:absolute;right:2px;top:2px;width:16px;height:16px;border-radius:50%;background:white;"></div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 13px;">
+          <div><div style="font-size:12px;font-weight:500;">Pace stats</div><div style="font-size:11px;color:var(--muted);">Visits/day — no locations or times</div></div>
+          <div id="pace-toggle" onclick="togglePace()" style="width:36px;height:20px;border-radius:10px;background:var(--red);position:relative;cursor:pointer;"><div style="position:absolute;right:2px;top:2px;width:16px;height:16px;border-radius:50%;background:white;"></div></div>
+        </div>
+      </div>
+
+      <div class="privacy-note" style="margin-top:10px;">
+        <strong>Your locations and visit times are never shared</strong> — even in a fully opted-in sprint. Quiet exit always available in Profile.
+      </div>
+
+      <button class="btn-red" onclick="confirmSprint()">Start sprint →</button>
+
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a class="nav-item" href="map.html"><span class="nav-icon">🗺</span><span class="nav-label">Map</span></a>
+    <a class="nav-item" href="home.html"><span class="nav-icon">⌂</span><span class="nav-label">Home</span></a>
+    <a class="nav-item nav-scan" href="scan.html"><span class="nav-icon" style="display:flex;align-items:center;justify-content:center;">⊞</span><span class="nav-label">Scan</span></a>
+    <button class="nav-item active"><span class="nav-icon">⚑</span><span class="nav-label">Races</span></button>
+    <a class="nav-item" href="badges.html"><span class="nav-icon">◈</span><span class="nav-label">Badges</span></a>
+  </nav>
 </div>
+
+<script src="../assets/js/state.js"></script>
+<script>
+var paceOn = true;
+
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function selectOpt(el, cls) {
+  document.querySelectorAll(cls).forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function togglePace() {
+  paceOn = !paceOn;
+  var t = document.getElementById('pace-toggle');
+  t.style.background = paceOn ? 'var(--red)' : 'var(--border)';
+  t.querySelector('div').style.right = paceOn ? '2px' : '';
+  t.querySelector('div').style.left = paceOn ? '' : '2px';
+}
+
+function confirmSprint() {
+  showView('view-race');
+}
+
+var colors = {
+  '#85B7EB':'#E6F1FB', '#CE2229':'#FCEBEB', '#5DCAA5':'#EAF3DE',
+  '#B4B2A9':'#F5F1EA', '#185FA5':'#E6F1FB',
+};
+
+function render() {
+  var p = CCR.p;
+
+  // Update create form with persona
+  var el = document.getElementById('create-avatar');
+  if (el) { el.style.background = p.avatarBg; el.style.color = p.avatarTc; el.textContent = p.initials; }
+  var nm = document.getElementById('create-name');
+  if (nm) nm.textContent = p.firstName + ' (you)';
+
+  // Active race section
+  var arc = document.getElementById('active-race-section');
+  if (p.activeRace) {
+    var maxScore = Math.max(...p.activeRace.racers.map(r=>r.score));
+    var placeLabel = p.activeRace.place === 1 ? '1st place 🥇' : p.activeRace.place === 2 ? '2nd place' : p.activeRace.place + 'th place';
+    var isFirst = p.activeRace.place === 1;
+    arc.innerHTML = `<div class="race-hero fu fu1">
+      <div class="race-hero-header">
+        <div><div class="race-hero-title">${p.activeRace.name}</div><div class="race-hero-sub">${p.activeRace.sub}</div></div>
+        <span class="place-badge${isFirst?' first':''}">${placeLabel}</span>
+      </div>
+      ${p.activeRace.racers.map(r=>`
+        <div class="race-row">
+          <span class="racer-name${r.you?' you':''}">${r.you?'You':r.name}</span>
+          <div class="race-bar-track"><div class="race-bar-fill" style="width:${Math.round(r.score/maxScore*100)}%;background:${r.color}"></div></div>
+          <span class="race-count${r.you?' you':''}">${r.score}</span>
+        </div>`).join('')}
+    </div>`;
+  } else {
+    arc.innerHTML = `<div class="empty-state fu fu1">
+      <div class="empty-icon">⚑</div>
+      <div class="empty-title">No active race</div>
+      <div class="empty-sub">Challenge friends or get matched with racers across the region.</div>
+      <button class="btn-red" style="width:auto;padding:11px 24px;margin-top:8px;" onclick="showView('view-create')">Start a sprint →</button>
+    </div>`;
+  }
+
+  // Stage section
+  var stages = [
+    { num:1, name:'Your run',      sub: p.countyProgress + ' / ' + p.countyTotal + ' locations · ' + (p.activeRace ? 'In progress' : 'Start a sprint'), active: !!p.activeRace },
+    { num:2, name:'Region heat',   sub: p.stateProgress + ' / ' + p.stateTotal + ' locations · Locked', active:false },
+    { num:3, name:'Full network',  sub: p.networkProgress + ' / ' + p.networkTotal + ' locations · Locked', active:false },
+  ];
+  document.getElementById('stage-section').innerHTML = stages.map(s=>`
+    <div class="stage-row">
+      <div class="stage-num" style="background:${s.active?'var(--red)':'var(--surface)'};color:${s.active?'white':'var(--muted)'};">${s.num}</div>
+      <div class="stage-info">
+        <div class="stage-name">${s.name}</div>
+        <div class="stage-sub">${s.sub}</div>
+      </div>
+      <span style="font-size:16px;color:var(--muted);">${s.active?'›':'🔒'}</span>
+    </div>`).join('');
+
+  // Activity feed
+  var feed = p.recentActivity.length ? p.recentActivity.map(a=>`
+    <div class="feed-row">
+      <div class="feed-avatar" style="background:${p.avatarBg};color:${p.avatarTc};">${p.initials}</div>
+      <div>
+        <div class="feed-text">${a.text}${a.bonus?` <span class="pill pill-${a.bonus==='loyal'?'red':'amber'}">${a.bonus==='loyal'?'Loyal +25':'Pioneer +50'}</span>`:''}</div>
+        <div class="feed-time">${a.time}</div>
+      </div>
+    </div>`) : [`<div style="padding:16px;text-align:center;font-size:12px;color:var(--muted);">No activity yet — check in to get started</div>`];
+  document.getElementById('activity-feed').innerHTML = `<div style="padding:4px 0 0;">${feed.join('')}</div>`;
+}
+
+window.onPersonaSwitch = function() { showView('view-race'); render(); };
+
+document.addEventListener('DOMContentLoaded', function() {
+  CCR.buildDevNav('races');
+  CCR.startClock();
+  render();
+});
+</script>
+</body>
+</html>
