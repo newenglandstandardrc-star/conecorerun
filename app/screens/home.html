@@ -711,7 +711,7 @@ html, body {
         <span class="streak-flame">🔥</span>
         12 day streak
       </div>
-      <div class="avatar" onclick="navTo('profile')">MT</div>
+      <div class="avatar" onclick="window.location='profile.html'">MT</div>
     </div>
   </div>
 
@@ -908,80 +908,35 @@ html, body {
 
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
-    <button class="nav-item" onclick="navTo('map')">
-      <span class="nav-icon">🗺</span>
-      <span class="nav-label">Map</span>
-    </button>
-    <button class="nav-item active" onclick="navTo('home')">
-      <span class="nav-icon">⌂</span>
-      <span class="nav-label">Home</span>
-    </button>
-    <button class="nav-item nav-scan" onclick="navTo('scan')">
-      <span class="nav-icon">⊞</span>
-      <span class="nav-label">Scan</span>
-    </button>
-    <button class="nav-item" onclick="navTo('races')">
-      <span class="nav-icon">⚑</span>
-      <span class="nav-label">Races</span>
-    </button>
-    <button class="nav-item" onclick="navTo('badges')">
-      <span class="nav-icon">◈</span>
-      <span class="nav-label">Badges</span>
-    </button>
+    <a class="nav-item" href="map.html"><span class="nav-icon">🗺</span><span class="nav-label">Map</span></a>
+    <a class="nav-item active" href="home.html"><span class="nav-icon">⌂</span><span class="nav-label">Home</span></a>
+    <a class="nav-item nav-scan" href="scan.html"><span class="nav-icon" style="display:flex;align-items:center;justify-content:center;">⊞</span><span class="nav-label">Scan</span></a>
+    <a class="nav-item" href="races.html"><span class="nav-icon">⚑</span><span class="nav-label">Races</span></a>
+    <a class="nav-item" href="badges.html"><span class="nav-icon">◈</span><span class="nav-label">Badges</span></a>
   </nav>
 
 </div>
 
+<div id="dev-nav"></div>
+<script src="../assets/js/state.js"></script>
 <script>
-  // Animate progress bars on load
-  document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
+  CCR.buildDevNav('home');
+  CCR.startClock();
+  function renderHome() {
+    var p = CCR.p;
+    var nameEl = document.querySelector('.name');
+    if (nameEl) nameEl.textContent = p.firstName;
+    var av = document.querySelector('.avatar');
+    if (av) { av.textContent = p.initials; av.style.background = p.avatarBg; av.style.color = p.avatarTc; }
     setTimeout(() => {
-      document.querySelectorAll('.prog-bar-fill').forEach(bar => {
-        const w = bar.style.width;
-        bar.style.width = '0';
-        setTimeout(() => bar.style.width = w, 50);
-      });
-      document.querySelectorAll('.race-bar-fill').forEach(bar => {
-        const w = bar.style.width;
-        bar.style.width = '0';
-        setTimeout(() => bar.style.width = w, 80);
-      });
-    }, 300);
-
-    // Clock
-    function tick() {
-      const now = new Date();
-      const h = now.getHours();
-      const m = String(now.getMinutes()).padStart(2, '0');
-      const el = document.querySelector('.status-time');
-      if (el) el.textContent = `${h}:${m}`;
-    }
-    tick();
-    setInterval(tick, 30000);
-  });
-
-  // Navigation placeholder — wires to other screens
-  function navTo(screen) {
-    const labels = {
-      home:    'Home',
-      map:     'Map',
-      scan:    'Scan / Check-in',
-      races:   'Races',
-      badges:  'Badges & Scoops',
-      profile: 'Profile'
-    };
-    // In the full prototype this routes between screens
-    // For now highlight the nav item
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const match = [...document.querySelectorAll('.nav-item')]
-      .find(n => n.querySelector('.nav-label')?.textContent.toLowerCase().includes(screen.substring(0,4)));
-    if (match) match.classList.add('active');
-
-    if (screen !== 'home') {
-      console.log(`→ Navigate to: ${labels[screen] || screen}`);
-      // TODO: route to app/screens/${screen}.html
-    }
+      document.querySelectorAll('.prog-bar-fill').forEach(bar => { var w=bar.style.width; bar.style.width='0'; setTimeout(()=>bar.style.width=w,50); });
+      document.querySelectorAll('.race-bar-fill').forEach(bar => { var w=bar.style.width; bar.style.width='0'; setTimeout(()=>bar.style.width=w,80); });
+    }, 200);
   }
+  window.onPersonaSwitch = renderHome;
+  renderHome();
+});
 </script>
 
 </body>
